@@ -40,15 +40,17 @@ void UDialogueSession::ProcessCurrentNode()
 		return;
 	}
 
-	TArray<FDialogueChoicePayload> Choices; //si hi ha més, és branching
+	FDialogueChoicesPayload Payload;
+	Payload.SpeakerId = Node->SpeakerId;
+	Payload.LineText = Node->Text;
 	for (int32 i = 0; i < NumOutputs; ++i)
 	{
 		FDialogueChoicePayload P;
 		P.Index = i;
 		P.Text = Node->Outputs[i].Text;
-		Choices.Add(P);
+		Payload.Choices.Add(P);
 	}
-	OnChoicesPresented.Broadcast(Choices); //els broadcasts son per a la UI, afegim opcions a una payload que enviem a UI per a que les mostri.
+	OnChoicesPresented.Broadcast(Payload);
 	
 }
 

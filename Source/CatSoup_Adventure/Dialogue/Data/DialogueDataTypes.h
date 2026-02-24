@@ -68,3 +68,19 @@ struct FDialogueChoicePayload
 	UPROPERTY(BlueprintReadOnly)
 	FText Text;
 };
+
+/** Full payload for choice nodes (2+ outputs). Line + speaker + choice options. */
+USTRUCT(BlueprintType)
+struct FDialogueChoicesPayload
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	FName SpeakerId;
+
+	UPROPERTY(BlueprintReadOnly)
+	FText LineText;
+
+	UPROPERTY(BlueprintReadOnly)
+	TArray<FDialogueChoicePayload> Choices;
+};

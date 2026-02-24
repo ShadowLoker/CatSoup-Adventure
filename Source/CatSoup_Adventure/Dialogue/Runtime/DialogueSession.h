@@ -10,7 +10,7 @@
 class UDialogueAsset;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDialogueLineStarted, const FDialogueLinePayload&, Payload);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDialogueChoicesPresented, const TArray<FDialogueChoicePayload>&, Choices);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDialogueChoicesPresented, const FDialogueChoicesPayload&, Payload);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDialogueEnded);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDialogueEvent, FName, EventName);
 
