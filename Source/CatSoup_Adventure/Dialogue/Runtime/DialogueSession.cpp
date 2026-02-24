@@ -11,7 +11,7 @@ void UDialogueSession::Start(UDialogueAsset* InAsset)
 	End();
 
 	Asset = InAsset;
-	CurrentNodeId = Asset->StartNodeId; //anem al startnode
+	CurrentNodeId = Asset->StartNodeId;
 	bIsRunning = true;
 	ProcessCurrentNode();
 }
@@ -20,41 +20,31 @@ void UDialogueSession::ProcessCurrentNode()
 {
 	if (!Asset || !bIsRunning) return;
 
-	const FDialogueNode* Node = Asset->Nodes.Find(CurrentNodeId); //El busquem al map (no m'acaba)
+	const FDialogueNode* Node = Asset->Nodes.Find(CurrentNodeId);
 	if (!Node) { End(); return; }
 
-	for (const FName& EventName : Node->EventNames) //LLançem els events només començar
+	for (const FName& EventName : Node->EventNames)
 	{
 		if (!EventName.IsNone()) OnDialogueEvent.Broadcast(EventName);
 	}
 
-	const int32 NumOutputs = Node->Outputs.Num(); //mirem quants outputs tenim
-	if (NumOutputs == 0) { End(); return; } // si no hi ha, endnode
+	const int32 NumOutputs = Node->Outputs.Num();
+	if (NumOutputs == 0) { End(); return; }
 
-	if (NumOutputs == 1) //si hi ha 1 és un fil
-	{
-		FDialogueLinePayload Payload;
-		Payload.SpeakerId = Node->SpeakerId;
-		Payload.LineText = Node->Text;
-		OnLineStarted.Broadcast(Payload);
-		return;
-	}
-
-	FDialogueChoicesPayload Payload;
+	FDialoguePayload Payload;
 	Payload.SpeakerId = Node->SpeakerId;
 	Payload.LineText = Node->Text;
-	for (int32 i = 0; i < NumOutputs; ++i)
+	if (NumOutputs >= 2)
 	{
-		FDialogueChoicePayload P;
-		P.Index = i;
-		P.Text = Node->Outputs[i].Text;
-		Payload.Choices.Add(P);
+		for (int32 i = 0; i < NumOutputs; ++i)
+		{
+			Payload.Choices.Add({ i, Node->Outputs[i].Text });
+		}
 	}
-	OnChoicesPresented.Broadcast(Payload);
-	
+	OnLineStarted.Broadcast(Payload);
 }
 
-void UDialogueSession::Advance(int32 OutputIndex) //Busquem el segûent al mapa
+void UDialogueSession::Advance(int32 OutputIndex)
 {
 	if (!Asset || !bIsRunning) return;
 	const FDialogueNode* Node = Asset->Nodes.Find(CurrentNodeId); 
@@ -62,14 +52,14 @@ void UDialogueSession::Advance(int32 OutputIndex) //Busquem el segûent al mapa
 	GoToNode(Node->Outputs[OutputIndex].NextNodeId);
 }
 
-void UDialogueSession::GoToNode(FName NodeId) //el processem
+void UDialogueSession::GoToNode(FName NodeId)
 {
 	if (NodeId.IsNone()) { End(); return; }
 	CurrentNodeId = NodeId;
 	ProcessCurrentNode();
 }
 
-void UDialogueSession::End() //acabem dialeg (Enviem a UI tmb)
+void UDialogueSession::End()
 {
 	bIsRunning = false;
 	OnDialogueEnded.Broadcast();

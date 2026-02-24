@@ -44,19 +44,7 @@ struct FDialogueNode
 	TArray<FName> EventNames;
 };
 
-/** One choice option when choices are shown (2+ outputs). Index is passed to Advance(Index) when clicked. */
-USTRUCT(BlueprintType)
-struct FDialogueLinePayload
-{
-	GENERATED_BODY()
-
-	UPROPERTY(BlueprintReadOnly)
-	FName SpeakerId;
-
-	UPROPERTY(BlueprintReadOnly)
-	FText LineText;
-};
-
+/** One choice option. Index is passed to Advance(Index) when clicked. */
 USTRUCT(BlueprintType)
 struct FDialogueChoicePayload
 {
@@ -69,9 +57,9 @@ struct FDialogueChoicePayload
 	FText Text;
 };
 
-/** Full payload for choice nodes (2+ outputs). Line + speaker + choice options. */
+/** Payload for every line. Choices empty = continue flow; Choices non-empty = show choices. */
 USTRUCT(BlueprintType)
-struct FDialogueChoicesPayload
+struct FDialoguePayload
 {
 	GENERATED_BODY()
 

@@ -9,8 +9,7 @@
 
 class UDialogueAsset;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDialogueLineStarted, const FDialogueLinePayload&, Payload);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDialogueChoicesPresented, const FDialogueChoicesPayload&, Payload);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDialogueLineStarted, const FDialoguePayload&, Payload);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDialogueEnded);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDialogueEvent, FName, EventName);
 
@@ -22,9 +21,6 @@ class CATSOUP_ADVENTURE_API UDialogueSession : public UObject
 public:
 	UPROPERTY(BlueprintAssignable)
 	FOnDialogueLineStarted OnLineStarted;
-
-	UPROPERTY(BlueprintAssignable)
-	FOnDialogueChoicesPresented OnChoicesPresented;
 
 	UPROPERTY(BlueprintAssignable)
 	FOnDialogueEnded OnDialogueEnded;
