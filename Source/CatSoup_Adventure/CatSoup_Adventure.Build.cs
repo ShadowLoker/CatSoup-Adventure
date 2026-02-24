@@ -5,18 +5,6 @@ using UnrealBuildTool;
 	
 public class CatSoup_Adventure : ModuleRules
 {
-
-
-		// Uncomment if you are using Slate UI
-		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
-		
-		// Uncomment if you are using online features
-		// PrivateDependencyModuleNames.Add("OnlineSubsystem");
-
-		// To include OnlineSubsystemSteam, add it to the plugins section in your uproject file with the Enabled attribute set to true
-		PrivateDependencyModuleNames.AddRange(new string[] {  });
-
-		// Module root for Dialogue/Data/, Dialogue/Runtime/
 	public CatSoup_Adventure(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
