@@ -19,7 +19,7 @@ void UDialogueComponent::BeginDialogue(AActor* Interactor)
 	EndDialogue(); // tanquem anteriors diàlegs si n'hi ha per a no repetir
 
 	ActiveSession = NewObject<UDialogueSession>(this); // Creem un de nou
-	ActiveSession->Start(DialogueAsset); //Començem el diàleg
+	//ActiveSession->Start(DialogueAsset); Iniciarem el dialeg desde un blueprint
 }
 
 void UDialogueComponent::EndDialogue()

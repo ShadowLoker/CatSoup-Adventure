@@ -18,29 +18,39 @@ void UDialogueSession::Start(UDialogueAsset* InAsset)
 
 void UDialogueSession::ProcessCurrentNode()
 {
-	if (!Asset || !bIsRunning) return;
+	UE_LOG(LogTemp, Warning, TEXT("Processing node: %s"), *CurrentNodeId.ToString());
+	if (!Asset || !bIsRunning)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No asset or session not running"));
+		return;
+	}
+	UE_LOG(LogTemp, Warning, TEXT("Processing node: %s"), *Asset->GetName());
 
 	const FDialogueNode* Node = Asset->Nodes.Find(CurrentNodeId);
-	if (!Node) { End(); return; }
+	if (!Node)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Node not found: %s"), *CurrentNodeId.ToString());
+		End();
+		return;
+	}
 
 	for (const FName& EventName : Node->EventNames)
 	{
 		if (!EventName.IsNone()) OnDialogueEvent.Broadcast(EventName);
 	}
 
-	const int32 NumOutputs = Node->Outputs.Num();
-	if (NumOutputs == 0) { End(); return; }
-
 	FDialoguePayload Payload;
 	Payload.SpeakerId = Node->SpeakerId;
 	Payload.LineText = Node->Text;
-	if (NumOutputs >= 2)
+	const int32 NumOutputs = Node->Outputs.Num();
+	if (NumOutputs >= 1)
 	{
 		for (int32 i = 0; i < NumOutputs; ++i)
 		{
 			Payload.Choices.Add({ i, Node->Outputs[i].Text });
 		}
 	}
+	UE_LOG(LogTemp, Warning, TEXT("OnLineStarted broadcast - Speaker: %s, Text: %s"), *Node->SpeakerId.ToString(), *Node->Text.ToString());
 	OnLineStarted.Broadcast(Payload);
 }
 
@@ -48,7 +58,11 @@ void UDialogueSession::Advance(int32 OutputIndex)
 {
 	if (!Asset || !bIsRunning) return;
 	const FDialogueNode* Node = Asset->Nodes.Find(CurrentNodeId); 
-	if (!Node || !Node->Outputs.IsValidIndex(OutputIndex)) return;
+	if (!Node || !Node->Outputs.IsValidIndex(OutputIndex))
+	{
+		End();
+		return;
+	}
 	GoToNode(Node->Outputs[OutputIndex].NextNodeId);
 }
 

@@ -40,6 +40,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Dialogue")
 	bool IsRunning() const { return bIsRunning; }
 
+	UFUNCTION(BlueprintPure, Category = "Dialogue")
+	FName GetCurrentNodeId() const { return CurrentNodeId; }
+	
 private:
 	UPROPERTY()
 	TObjectPtr<UDialogueAsset> Asset;
