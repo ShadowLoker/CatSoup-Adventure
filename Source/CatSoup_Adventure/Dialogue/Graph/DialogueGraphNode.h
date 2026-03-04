@@ -35,15 +35,37 @@ public:
 	{
 		Super::PostEditChangeProperty(E);
 
-		const FName Prop = E.GetPropertyName();
-		const FName Member = E.GetMemberPropertyName();
+		const FProperty* ChangedProp = E.Property;
+		const FProperty* MemberProp  = E.MemberProperty;
 
-		// Rebuild pins when Outputs array is edited (add/remove/reorder) or its members change
-		if (Prop == GET_MEMBER_NAME_CHECKED(FDialogueNode, Outputs) ||
-			Member == GET_MEMBER_NAME_CHECKED(FDialogueNode, Outputs))
+		const FName PropName   = ChangedProp ? ChangedProp->GetFName() : NAME_None;
+		const FName MemberName = MemberProp  ? MemberProp->GetFName()  : NAME_None;
+
+		UE_LOG(LogTemp, Warning, TEXT("[DIALOGUE NODE] PostEditChangeProperty: NodeId=%s Prop=%s Member=%s ChangeType=%d"),
+			*NodeId.ToString(),
+			*PropName.ToString(),
+			*MemberName.ToString(),
+			(int32)E.ChangeType
+		);
+		
+		const bool bMemberIsNodeData =
+			(MemberName == GET_MEMBER_NAME_CHECKED(UDialogueGraphNode, NodeData));
+
+		const bool bDirectOutputsEdit =
+			(PropName == GET_MEMBER_NAME_CHECKED(FDialogueNode, Outputs)) ||
+			(E.GetPropertyName() == GET_MEMBER_NAME_CHECKED(FDialogueNode, Outputs)) ||
+			(E.GetMemberPropertyName() == GET_MEMBER_NAME_CHECKED(FDialogueNode, Outputs));
+
+		const bool bOutputElementFieldEdit =
+			bMemberIsNodeData &&
+			ChangedProp &&
+			(ChangedProp->GetOwnerStruct() == FDialogueOutput::StaticStruct());
+
+		if (bDirectOutputsEdit || bOutputElementFieldEdit)
 		{
 			Modify();
 
+			// Keep your invariant: non-start nodes always have at least 1 output
 			if (NodeType != EDialogueGraphNodeType::Start && NodeData.Outputs.Num() == 0)
 			{
 				NodeData.Outputs.AddDefaulted();
@@ -52,15 +74,12 @@ public:
 			}
 
 			ReconstructNode();
-			if (UEdGraph* G = GetGraph()) G->NotifyGraphChanged();
-		}
-	}
 
-	virtual void PostEditUndo() override
-	{
-		Super::PostEditUndo();
-		ReconstructNode();
-		if (UEdGraph* G = GetGraph()) G->NotifyGraphChanged();
+			if (UEdGraph* G = GetGraph())
+			{
+				G->NotifyGraphChanged();
+			}
+		}
 	}
 #endif
 
