@@ -19,14 +19,5 @@ private:
 	UDialogueGraphNode* DNode = nullptr;
 	TSharedPtr<SVerticalBox> OutputLabelsBox;
 
-	FText GetSpeakerText() const;
-	void OnSpeakerCommitted(const FText& NewText, ETextCommit::Type CommitType);
-
-	FText GetLineText() const;
-	void OnLineCommitted(const FText& NewText, ETextCommit::Type CommitType);
-
 	FReply OnAddOutputClicked();
-
-	FText GetOutputText(int32 Index) const;
-	void OnOutputTextCommitted(const FText& NewText, ETextCommit::Type CommitType, int32 Index);
 };

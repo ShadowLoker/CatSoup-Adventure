@@ -160,18 +160,8 @@ const FPinConnectionResponse UDialogueGraphSchema::CanCreateConnection(
     const UEdGraphPin* OutPin = (A->Direction == EGPD_Output) ? A : B;
     const UEdGraphPin* InPin  = (A->Direction == EGPD_Input)  ? A : B;
 
-    // Start.Out_0: single connection (replace)
-    if (const UDialogueGraphNode* OutNode = Cast<UDialogueGraphNode>(OutPin->GetOwningNode()))
-    {
-        if (OutNode->NodeType == EDialogueGraphNodeType::Start && OutPin->LinkedTo.Num() > 0)
-            return FPinConnectionResponse(CONNECT_RESPONSE_BREAK_OTHERS_A, TEXT("Replace Start connection"));
-    }
-
-    // Each output option should be single connection (replace existing)
-    if (OutPin->LinkedTo.Num() > 0)
-        return FPinConnectionResponse(CONNECT_RESPONSE_BREAK_OTHERS_A, TEXT("Replace existing option link"));
-
-    // INPUT: allow multiple connections (no break-others)
+    // Allow all valid flow connections. Both Start and Dialogue outputs accept multiple connections.
+    // Runtime uses the first connection (LinkedTo[0]) for the flow path.
     return FPinConnectionResponse(CONNECT_RESPONSE_MAKE, TEXT(""));
 }
 

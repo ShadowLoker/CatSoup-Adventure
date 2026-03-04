@@ -68,8 +68,20 @@ void SDialogueGraphNode::UpdateGraphNode()
                 .Padding(0, 0, 0, 12)
                 [
                     SNew(SEditableTextBox)
-                    .Text(this, &SDialogueGraphNode::GetSpeakerText)
-                    .OnTextCommitted(this, &SDialogueGraphNode::OnSpeakerCommitted)
+                    .Text(TAttribute<FText>::CreateLambda([WeakNode = TWeakObjectPtr<UDialogueGraphNode>(DNode)]()
+                    {
+                        UDialogueGraphNode* Node = WeakNode.Get();
+                        return Node ? FText::FromString(Node->NodeData.SpeakerId.ToString()) : FText::GetEmpty();
+                    }))
+                    .OnTextCommitted(FOnTextCommitted::CreateLambda([WeakNode = TWeakObjectPtr<UDialogueGraphNode>(DNode)](const FText& NewText, ETextCommit::Type)
+                    {
+                        if (UDialogueGraphNode* Node = WeakNode.Get())
+                        {
+                            Node->Modify();
+                            Node->NodeData.SpeakerId = FName(*NewText.ToString());
+                            if (UEdGraph* G = Node->GetGraph()) G->NotifyGraphChanged();
+                        }
+                    }))
                 ]
 
                 + SVerticalBox::Slot()
@@ -87,8 +99,21 @@ void SDialogueGraphNode::UpdateGraphNode()
                     .MinDesiredHeight(80.f)
                     [
                         SNew(SMultiLineEditableTextBox)
-                        .Text(this, &SDialogueGraphNode::GetLineText)
-                        .OnTextCommitted(this, &SDialogueGraphNode::OnLineCommitted)
+                        .Text(TAttribute<FText>::CreateLambda([WeakNode = TWeakObjectPtr<UDialogueGraphNode>(DNode)]()
+                        {
+                            UDialogueGraphNode* Node = WeakNode.Get();
+                            return Node ? Node->NodeData.Text : FText::GetEmpty();
+                        }))
+                        .OnTextCommitted(FOnTextCommitted::CreateLambda([WeakNode = TWeakObjectPtr<UDialogueGraphNode>(DNode)](const FText& NewText, ETextCommit::Type)
+                        {
+                            if (UDialogueGraphNode* Node = WeakNode.Get())
+                            {
+                                Node->Modify();
+                                Node->NodeData.Text = NewText;
+                                Node->ReconstructNode();
+                                if (UEdGraph* G = Node->GetGraph()) G->NotifyGraphChanged();
+                            }
+                        }))
                     ]
                 ]
             ]
@@ -110,43 +135,48 @@ void SDialogueGraphNode::UpdateGraphNode()
                 .AutoHeight()
                 [
                     SNew(SHorizontalBox)
+                    // Pins first (left) so they're prominent and easy to drag from
                     + SHorizontalBox::Slot()
-                .AutoWidth()
-                .Padding(0, 0, 6, 0)
-                [
-                    SNew(SBox)
-                    .Visibility(DNode && DNode->NodeType == EDialogueGraphNodeType::Dialogue ? EVisibility::Visible : EVisibility::Collapsed)
+                    .AutoWidth()
+                    .MinWidth(28.f)
                     [
-                        SAssignNew(OutputLabelsBox, SVerticalBox)
+                        SNew(SVerticalBox)
+                        + SVerticalBox::Slot()
+                        .AutoHeight()
+                        [
+                            SAssignNew(RightNodeBox, SVerticalBox)
+                        ]
                     ]
-                ]
-                + SHorizontalBox::Slot()
-                .AutoWidth()
-                [
-                    SNew(SVerticalBox)
-                    + SVerticalBox::Slot()
-                    .AutoHeight()
+                    + SHorizontalBox::Slot()
+                    .AutoWidth()
+                    .Padding(6, 0, 0, 0)
                     [
-                        SAssignNew(RightNodeBox, SVerticalBox)
-                    ]
-                    + SVerticalBox::Slot()
-                    .AutoHeight()
-                    .Padding(4.f, 6.f)
-                    [
-                        SNew(SButton)
-                        .Text(FText::FromString(TEXT("+ Add Output")))
-                        .OnClicked(this, &SDialogueGraphNode::OnAddOutputClicked)
+                        SNew(SBox)
                         .Visibility(DNode && DNode->NodeType == EDialogueGraphNodeType::Dialogue ? EVisibility::Visible : EVisibility::Collapsed)
+                        [
+                            SAssignNew(OutputLabelsBox, SVerticalBox)
+                        ]
                     ]
                 ]
+                + SVerticalBox::Slot()
+                .AutoHeight()
+                .Padding(4.f, 6.f)
+                [
+                    SNew(SButton)
+                    .Text(FText::FromString(TEXT("+ Add Output")))
+                    .OnClicked(this, &SDialogueGraphNode::OnAddOutputClicked)
+                    .Visibility(DNode && DNode->NodeType == EDialogueGraphNodeType::Dialogue ? EVisibility::Visible : EVisibility::Collapsed)
                 ]
             ]
         ]
     ];
 
     // Populate output labels (editable) for Dialogue nodes
+    // Use TWeakObjectPtr to avoid capturing 'this' - when the graph refreshes after ReconstructNode,
+    // the Slate widget may be destroyed while callbacks are still pending, causing EXCEPTION_ACCESS_VIOLATION.
     if (OutputLabelsBox.IsValid() && DNode && DNode->NodeType == EDialogueGraphNodeType::Dialogue)
     {
+        TWeakObjectPtr<UDialogueGraphNode> WeakNode(DNode);
         for (int32 i = 0; i < DNode->NodeData.Outputs.Num(); i++)
         {
             const int32 Index = i;
@@ -156,8 +186,21 @@ void SDialogueGraphNode::UpdateGraphNode()
                 [
                     SNew(SEditableTextBox)
                     .MinDesiredWidth(60.f)
-                    .Text(TAttribute<FText>::CreateLambda([this, Index]() { return GetOutputText(Index); }))
-                    .OnTextCommitted(FOnTextCommitted::CreateLambda([this, Index](const FText& T, ETextCommit::Type C) { OnOutputTextCommitted(T, C, Index); }))
+                    .Text(TAttribute<FText>::CreateLambda([WeakNode, Index]()
+                    {
+                        UDialogueGraphNode* Node = WeakNode.Get();
+                        if (!Node || !Node->NodeData.Outputs.IsValidIndex(Index)) return FText::GetEmpty();
+                        return Node->NodeData.Outputs[Index].Text;
+                    }))
+                    .OnTextCommitted(FOnTextCommitted::CreateLambda([WeakNode, Index](const FText& NewText, ETextCommit::Type)
+                    {
+                        UDialogueGraphNode* Node = WeakNode.Get();
+                        if (!Node || !Node->NodeData.Outputs.IsValidIndex(Index)) return;
+                        Node->Modify();
+                        Node->NodeData.Outputs[Index].Text = NewText;
+                        Node->ReconstructNode();
+                        if (UEdGraph* G = Node->GetGraph()) G->NotifyGraphChanged();
+                    }))
                 ];
         }
     }
@@ -176,35 +219,6 @@ void SDialogueGraphNode::CreatePinWidgets()
 
         AddPin(NewPin.ToSharedRef());
     }
-}
-
-FText SDialogueGraphNode::GetSpeakerText() const
-{
-    if (!DNode) return FText::GetEmpty();
-    return FText::FromString(DNode->NodeData.SpeakerId.ToString());
-}
-
-void SDialogueGraphNode::OnSpeakerCommitted(const FText& NewText, ETextCommit::Type)
-{
-    if (!DNode) return;
-    DNode->Modify();
-    DNode->NodeData.SpeakerId = FName(*NewText.ToString());
-    if (UEdGraph* G = DNode->GetGraph()) G->NotifyGraphChanged();
-}
-
-FText SDialogueGraphNode::GetLineText() const
-{
-    if (!DNode) return FText::GetEmpty();
-    return DNode->NodeData.Text;
-}
-
-void SDialogueGraphNode::OnLineCommitted(const FText& NewText, ETextCommit::Type)
-{
-    if (!DNode) return;
-    DNode->Modify();
-    DNode->NodeData.Text = NewText;
-    DNode->ReconstructNode(); // updates title/pin labels if you want
-    if (UEdGraph* G = DNode->GetGraph()) G->NotifyGraphChanged();
 }
 
 FReply SDialogueGraphNode::OnAddOutputClicked()
@@ -226,23 +240,4 @@ FReply SDialogueGraphNode::OnAddOutputClicked()
     UpdateGraphNode();
 
     return FReply::Handled();
-}
-
-FText SDialogueGraphNode::GetOutputText(int32 Index) const
-{
-    if (!DNode || !DNode->NodeData.Outputs.IsValidIndex(Index))
-        return FText::GetEmpty();
-    return DNode->NodeData.Outputs[Index].Text;
-}
-
-void SDialogueGraphNode::OnOutputTextCommitted(const FText& NewText, ETextCommit::Type, int32 Index)
-{
-    if (!DNode || !DNode->NodeData.Outputs.IsValidIndex(Index))
-        return;
-    DNode->Modify();
-    DNode->NodeData.Outputs[Index].Text = NewText;
-    DNode->ReconstructNode();
-    if (UEdGraph* G = DNode->GetGraph())
-        G->NotifyGraphChanged();
-    UpdateGraphNode();
 }
