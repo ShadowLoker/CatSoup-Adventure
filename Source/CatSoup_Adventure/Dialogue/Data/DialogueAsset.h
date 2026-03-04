@@ -21,6 +21,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TMap<FName, FDialogueNode> Nodes;
 
+	void CompileFromGraph();
+	virtual void PreSave(FObjectPreSaveContext SaveContext) override;
+	
 	UFUNCTION(BlueprintCallable, Category = "Dialogue")
 	bool IsValid() const;
+
+	UPROPERTY()
+	TObjectPtr<class UDialogueGraph> EditorGraph;
 };
