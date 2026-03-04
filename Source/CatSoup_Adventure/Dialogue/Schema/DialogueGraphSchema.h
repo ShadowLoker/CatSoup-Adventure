@@ -3,6 +3,9 @@
 
 #include "Dialogue/Graph/DialogueGraphNode.h"
 #include "EdGraph/EdGraphSchema.h"
+#include "ToolMenus.h"
+#include "ToolMenu.h"
+#include "ToolMenuSection.h"
 #include "DialogueGraphSchema.generated.h"
 
 UCLASS()
@@ -13,26 +16,8 @@ class CATSOUP_ADVENTURE_API UDialogueGraphSchema : public UEdGraphSchema
 public:
 	virtual void GetGraphContextActions(FGraphContextMenuBuilder& ContextMenuBuilder) const override;
 	virtual const FPinConnectionResponse CanCreateConnection(const UEdGraphPin* A, const UEdGraphPin* B) const override;
-	virtual bool TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) const override
-	{
-		if (!A || !B) return false;
-
-		const FPinConnectionResponse Resp = CanCreateConnection(A, B);
-		if (Resp.Response == CONNECT_RESPONSE_DISALLOW) return false;
-
-		// Ensure A is output, B is input
-		if (A->Direction == EGPD_Input)
-		{
-			Swap(A, B);
-		}
-
-		// Optional: enforce single outgoing link from Start
-		if (A->GetOwningNode() && Cast<UDialogueGraphNode>(A->GetOwningNode()) &&
-			Cast<UDialogueGraphNode>(A->GetOwningNode())->NodeType == EDialogueGraphNodeType::Start)
-		{
-			A->BreakAllPinLinks(true);
-		}
-
-		return Super::TryCreateConnection(A, B);
-	}
+	virtual void GetContextMenuActions(UToolMenu* Menu, UGraphNodeContextMenuContext* Context) const override;
+	virtual bool TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) const override;
+	virtual void BreakPinLinks(UEdGraphPin& TargetPin, bool bSendsNodeNotif) const override;
+	virtual void BreakSinglePinLink(UEdGraphPin* SourcePin, UEdGraphPin* TargetPin) const override;
 };

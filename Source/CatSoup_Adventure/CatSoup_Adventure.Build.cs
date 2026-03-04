@@ -18,7 +18,8 @@ public class CatSoup_Adventure : ModuleRules
 			"WorkspaceMenuStructure",
 			"GraphEditor",
 			"BlueprintGraph",   // Add this to resolve UEdGraphSchema_K2 symbols
-			"KismetCompiler"    // Sometimes also needed for Blueprint compilation support
+			"KismetCompiler",    // Sometimes also needed for Blueprint compilation support
+			"ToolMenus",
 		});
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });

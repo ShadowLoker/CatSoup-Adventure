@@ -14,6 +14,7 @@
 #include "Dialogue/Schema/DialogueGraphSchema.h"
 
 #include "IDetailsView.h"
+#include "Framework/Commands/GenericCommands.h"
 
 #define LOCTEXT_NAMESPACE "DialogueAssetEditor"
 
@@ -57,6 +58,14 @@ void FDialogueAssetEditorToolkit::Initialize(UDialogueAsset* InDialogueAsset)
 {
     check(InDialogueAsset);
     DialogueAsset = InDialogueAsset;
+
+    GraphCommandList = MakeShared<FUICommandList>();
+
+    GraphCommandList->MapAction(
+        FGenericCommands::Get().Delete,
+        FExecuteAction::CreateRaw(this, &FDialogueAssetEditorToolkit::DeleteSelectedNodes),
+        FCanExecuteAction::CreateRaw(this, &FDialogueAssetEditorToolkit::CanDeleteSelectedNodes)
+    );
 
     // Ensure we have a graph object owned by the asset and a valid schema
     if (!DialogueAsset->EditorGraph)
@@ -131,6 +140,7 @@ TSharedRef<SDockTab> FDialogueAssetEditorToolkit::SpawnTab_GraphEditor(const FSp
             this, &FDialogueAssetEditorToolkit::OnGraphSelectionChanged);
 
         GraphEditor = SNew(SGraphEditor)
+            .AdditionalCommands(GraphCommandList)
             .GraphToEdit(DialogueGraph)
             .IsEditable(true)
             .ShowGraphStateOverlay(false)
@@ -212,6 +222,35 @@ void FDialogueAssetEditorToolkit::OnGraphSelectionChanged(const TSet<UObject*>& 
     {
         DetailsView->SetObject(nullptr);
     }
+}
+
+bool FDialogueAssetEditorToolkit::CanDeleteSelectedNodes() const
+{
+    return GraphEditor.IsValid() && GraphEditor->GetSelectedNodes().Num() > 0;
+}
+
+void FDialogueAssetEditorToolkit::DeleteSelectedNodes()
+{
+    if (!GraphEditor.IsValid() || !DialogueGraph) return;
+
+    const FScopedTransaction Transaction(NSLOCTEXT("DialogueGraph", "DeleteNodes", "Delete Dialogue Nodes"));
+    DialogueGraph->Modify();
+
+    const FGraphPanelSelectionSet Selected = GraphEditor->GetSelectedNodes();
+
+    for (UObject* Obj : Selected)
+    {
+        if (UEdGraphNode* Node = Cast<UEdGraphNode>(Obj))
+        {
+            if (!Node->CanUserDeleteNode())
+                continue;
+
+            Node->Modify();
+            Node->DestroyNode();          // removes from graph + breaks links
+        }
+    }
+
+    DialogueGraph->NotifyGraphChanged();
 }
 
 #undef LOCTEXT_NAMESPACE
