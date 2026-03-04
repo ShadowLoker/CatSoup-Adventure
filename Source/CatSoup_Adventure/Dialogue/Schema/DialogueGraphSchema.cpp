@@ -1,6 +1,7 @@
-﻿#include "DialogueGraphSchema.h"
+#include "DialogueGraphSchema.h"
 #include "Dialogue/Graph/DialogueGraphNode.h"
 #include "Dialogue/Graph/DialogueGraphPins.h"
+#include "ScopedTransaction.h"
 #include "ToolMenus.h"
 #include "ToolMenu.h"
 #include "ToolMenuSection.h"
@@ -114,6 +115,16 @@ namespace DialogueSchemaActions
     };
 }
 
+static bool TryParseOutIndex(const FName& PinName, int32& OutIndex)
+{
+    const FString S = PinName.ToString();
+    if (!S.StartsWith(TEXT("Out_"))) return false;
+    const FString Right = S.Mid(4);
+    if (!Right.IsNumeric()) return false;
+    OutIndex = FCString::Atoi(*Right);
+    return OutIndex >= 0;
+}
+
 void UDialogueGraphSchema::GetGraphContextActions(FGraphContextMenuBuilder& ContextMenuBuilder) const
 {
     const FText Category = LOCTEXT("DialogueCategory", "Dialogue");
@@ -174,20 +185,20 @@ void UDialogueGraphSchema::GetContextMenuActions(UToolMenu* Menu, UGraphNodeCont
     if (Context->Pin)
     {
         FToolMenuSection& Section = Menu->AddSection("DialoguePin", FText::FromString("Pin"));
-        const UEdGraphPin* PinConst = Context->Pin;           // likely const UEdGraphPin*
-        UEdGraphNode* OwnerNode = PinConst ? const_cast<UEdGraphNode*>(PinConst->GetOwningNode()) : nullptr;
+        const UEdGraphPin* PinConst = Context->Pin;
+        UDialogueGraphNode* DNode = PinConst ? Cast<UDialogueGraphNode>(const_cast<UEdGraphNode*>(PinConst->GetOwningNode())) : nullptr;
         const FName PinName = PinConst ? PinConst->PinName : NAME_None;
 
-        TWeakObjectPtr<UEdGraphNode> WeakOwnerNode = OwnerNode;
+        TWeakObjectPtr<UDialogueGraphNode> WeakDNode = DNode;
 
         Section.AddMenuEntry(
             "DialogueBreakPinLinks",
             FText::FromString("Break Links"),
             FText::FromString("Break all links from this pin"),
             FSlateIcon(),
-            FUIAction(FExecuteAction::CreateLambda([WeakOwnerNode, PinName]()
+            FUIAction(FExecuteAction::CreateLambda([WeakDNode, PinName]()
             {
-                UEdGraphNode* Node = WeakOwnerNode.Get();
+                UEdGraphNode* Node = WeakDNode.Get();
                 if (!Node || PinName.IsNone())
                     return;
 
@@ -197,7 +208,6 @@ void UDialogueGraphSchema::GetContextMenuActions(UToolMenu* Menu, UGraphNodeCont
                 if (Graph) Graph->Modify();
                 Node->Modify();
 
-                // Find the pin again by name
                 UEdGraphPin* Pin = nullptr;
                 for (UEdGraphPin* P : Node->Pins)
                 {
@@ -214,6 +224,34 @@ void UDialogueGraphSchema::GetContextMenuActions(UToolMenu* Menu, UGraphNodeCont
                 }
             }))
         );
+
+        // Remove Output: for output pins of Dialogue nodes when more than one output exists
+        int32 OutIndex = INDEX_NONE;
+        if (DNode && PinConst->Direction == EGPD_Output && TryParseOutIndex(PinName, OutIndex) &&
+            DNode->NodeType == EDialogueGraphNodeType::Dialogue &&
+            DNode->NodeData.Outputs.Num() > 1 && DNode->NodeData.Outputs.IsValidIndex(OutIndex))
+        {
+            Section.AddMenuEntry(
+                "DialogueRemoveOutput",
+                FText::FromString("Remove Output"),
+                FText::FromString("Remove this output option"),
+                FSlateIcon(),
+                FUIAction(FExecuteAction::CreateLambda([WeakDNode, OutIndex]()
+                {
+                    UDialogueGraphNode* N = WeakDNode.Get();
+                    if (!N || !N->NodeData.Outputs.IsValidIndex(OutIndex) || N->NodeData.Outputs.Num() <= 1)
+                        return;
+
+                    const FScopedTransaction Tx(NSLOCTEXT("DialogueGraph", "RemoveOutput", "Remove Output"));
+                    if (UEdGraph* G = N->GetGraph()) G->Modify();
+                    N->Modify();
+                    N->RemovedOutputIndexDuringReconstruct = OutIndex;
+                    N->NodeData.Outputs.RemoveAt(OutIndex);
+                    N->ReconstructNode();
+                    if (UEdGraph* G = N->GetGraph()) G->NotifyGraphChanged();
+                }))
+            );
+        }
         return;
     }
 
@@ -244,16 +282,6 @@ void UDialogueGraphSchema::GetContextMenuActions(UToolMenu* Menu, UGraphNodeCont
             }))
         );
     }
-}
-
-static bool TryParseOutIndex(const FName& PinName, int32& OutIndex)
-{
-    const FString S = PinName.ToString();
-    if (!S.StartsWith(TEXT("Out_"))) return false;
-    const FString Right = S.Mid(4);
-    if (!Right.IsNumeric()) return false;
-    OutIndex = FCString::Atoi(*Right);
-    return OutIndex >= 0;
 }
 
 static void UpdateNextNodeFromPinLink(UEdGraphPin* OutPin)
