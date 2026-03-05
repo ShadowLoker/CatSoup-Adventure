@@ -129,7 +129,7 @@ void SDialogueGraphNode::UpdateGraphNode()
                 [
                     SNew(STextBlock)
                     .Text(FText::FromString(TEXT("Choices")))
-                    .Visibility(DNode && DNode->NodeType == EDialogueGraphNodeType::Dialogue ? EVisibility::Visible : EVisibility::Collapsed)
+                    .Visibility(DNode ? EVisibility::Visible : EVisibility::Collapsed)
                 ]
                 + SVerticalBox::Slot()
                 .AutoHeight()
@@ -152,7 +152,7 @@ void SDialogueGraphNode::UpdateGraphNode()
                     .Padding(6, 0, 0, 0)
                     [
                         SNew(SBox)
-                        .Visibility(DNode && DNode->NodeType == EDialogueGraphNodeType::Dialogue ? EVisibility::Visible : EVisibility::Collapsed)
+                        .Visibility(DNode ? EVisibility::Visible : EVisibility::Collapsed)
                         [
                             SAssignNew(OutputLabelsBox, SVerticalBox)
                         ]
@@ -165,7 +165,7 @@ void SDialogueGraphNode::UpdateGraphNode()
                     SNew(SButton)
                     .Text(FText::FromString(TEXT("+ Add Output")))
                     .OnClicked(this, &SDialogueGraphNode::OnAddOutputClicked)
-                    .Visibility(DNode && DNode->NodeType == EDialogueGraphNodeType::Dialogue ? EVisibility::Visible : EVisibility::Collapsed)
+                    .Visibility(DNode ? EVisibility::Visible : EVisibility::Collapsed)
                 ]
             ]
         ]
@@ -174,7 +174,7 @@ void SDialogueGraphNode::UpdateGraphNode()
     // Populate output labels (editable) for Dialogue nodes
     // Use TWeakObjectPtr to avoid capturing 'this' - when the graph refreshes after ReconstructNode,
     // the Slate widget may be destroyed while callbacks are still pending, causing EXCEPTION_ACCESS_VIOLATION.
-    if (OutputLabelsBox.IsValid() && DNode && DNode->NodeType == EDialogueGraphNodeType::Dialogue)
+    if (OutputLabelsBox.IsValid() && DNode)
     {
         TWeakObjectPtr<UDialogueGraphNode> WeakNode(DNode);
         for (int32 i = 0; i < DNode->NodeData.Outputs.Num(); i++)

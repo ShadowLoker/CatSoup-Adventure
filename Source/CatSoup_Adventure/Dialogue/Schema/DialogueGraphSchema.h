@@ -1,4 +1,4 @@
-﻿// DialogueGraphSchema.h
+// DialogueGraphSchema.h
 #pragma once
 
 #include "Dialogue/Graph/DialogueGraphNode.h"

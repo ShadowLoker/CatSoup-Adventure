@@ -1,9 +1,10 @@
-﻿// DialogueAssetEditor.h
+// DialogueAssetEditor.h
 #pragma once
 #include "Toolkits/AssetEditorToolkit.h"
 #include "Dialogue/Data/DialogueAsset.h"
 #include "DialogueGraph.h"
 #include "DialogueGraphNode.h"
+#include "DialogueStartGizmo.h"
 
 class FDialogueAssetEditorToolkit : public FAssetEditorToolkit
 {

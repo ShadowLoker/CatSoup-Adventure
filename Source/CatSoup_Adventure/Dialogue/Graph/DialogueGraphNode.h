@@ -6,13 +6,6 @@
 #include "DialogueGraphPins.h"
 #include "DialogueGraphNode.generated.h"
 
-UENUM()
-enum class EDialogueGraphNodeType : uint8
-{
-	Start,
-	Dialogue
-};
-
 const FName DialogueFlowPinCategory(TEXT("DialogueFlow"));
 
 UCLASS()
@@ -21,9 +14,6 @@ class CATSOUP_ADVENTURE_API UDialogueGraphNode : public UEdGraphNode
 	GENERATED_BODY()
 
 public:
-	UPROPERTY()
-	EDialogueGraphNodeType NodeType = EDialogueGraphNodeType::Dialogue;
-
 	UPROPERTY(EditAnywhere, Category="Dialogue")
 	FDialogueNode NodeData;
 
@@ -68,8 +58,8 @@ public:
 		{
 			Modify();
 
-			// Keep your invariant: non-start nodes always have at least 1 output
-			if (NodeType != EDialogueGraphNodeType::Start && NodeData.Outputs.Num() == 0)
+			// Keep invariant: all nodes always have at least 1 output
+			if (NodeData.Outputs.Num() == 0)
 			{
 				NodeData.Outputs.AddDefaulted();
 				NodeData.Outputs[0].Text = FText::FromString(TEXT("Next"));
@@ -152,38 +142,27 @@ public:
 		}
 
 		// Sync NodeData.Outputs[].NextNodeId from restored pin links (BreakPinLinks clears them)
-		if (NodeType == EDialogueGraphNodeType::Dialogue)
+		for (UEdGraphPin* Pin : Pins)
 		{
-			for (UEdGraphPin* Pin : Pins)
+			if (!Pin || Pin->Direction != EGPD_Output) continue;
+			int32 OutIdx = INDEX_NONE;
+			FString S = Pin->PinName.ToString();
+			if (S.StartsWith(TEXT("Out_"))) OutIdx = FCString::Atoi(*S.Mid(4));
+			if (OutIdx >= 0 && NodeData.Outputs.IsValidIndex(OutIdx))
 			{
-				if (!Pin || Pin->Direction != EGPD_Output) continue;
-				int32 OutIdx = INDEX_NONE;
-				FString S = Pin->PinName.ToString();
-				if (S.StartsWith(TEXT("Out_"))) OutIdx = FCString::Atoi(*S.Mid(4));
-				if (OutIdx >= 0 && NodeData.Outputs.IsValidIndex(OutIdx))
+				FName NewNext = NAME_None;
+				if (Pin->LinkedTo.Num() > 0 && Pin->LinkedTo[0])
 				{
-					FName NewNext = NAME_None;
-					if (Pin->LinkedTo.Num() > 0 && Pin->LinkedTo[0])
-					{
-						if (UDialogueGraphNode* ToNode = Cast<UDialogueGraphNode>(Pin->LinkedTo[0]->GetOwningNode()))
-							if (ToNode->NodeType != EDialogueGraphNodeType::Start)
-								NewNext = ToNode->NodeId;
-					}
-					NodeData.Outputs[OutIdx].NextNodeId = NewNext;
+					if (UDialogueGraphNode* ToNode = Cast<UDialogueGraphNode>(Pin->LinkedTo[0]->GetOwningNode()))
+						NewNext = ToNode->NodeId;
 				}
+				NodeData.Outputs[OutIdx].NextNodeId = NewNext;
 			}
 		}
 	}
 
 	virtual void AllocateDefaultPins() override
 	{
-		if (NodeType == EDialogueGraphNodeType::Start)
-		{
-			UEdGraphPin* OutPin = CreatePin(EGPD_Output, DialogueGraphPins::Flow, FName(TEXT("Out_0")));
-			if (OutPin) OutPin->PinFriendlyName = FText::FromString(TEXT("Start"));
-			return;
-		}
-
 		// Ensure data first
 		if (NodeData.Outputs.Num() == 0)
 		{
@@ -211,13 +190,10 @@ public:
 
 	virtual FText GetNodeTitle(ENodeTitleType::Type TitleType) const override
 	{
-		if (NodeType == EDialogueGraphNodeType::Start)
-			return FText::FromString(TEXT("Start"));
-
 		return NodeData.Text.IsEmpty() ? FText::FromName(NodeId) : NodeData.Text;
 	}
 
-	virtual bool CanUserDeleteNode() const override { return NodeType != EDialogueGraphNodeType::Start; }
-	virtual bool CanDuplicateNode() const override { return NodeType != EDialogueGraphNodeType::Start; }
+	virtual bool CanUserDeleteNode() const override { return true; }
+	virtual bool CanDuplicateNode() const override { return true; }
 	
 };

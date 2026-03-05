@@ -1,4 +1,4 @@
-﻿// cpp
+// cpp
 // Source/CatSoup_Adventure/Dialogue/Graph/DialogueAssetEditor.cpp
 #include "DialogueAssetEditorToolkit.h"
 
@@ -22,35 +22,27 @@ const FName DialogueEditorAppIdentifier = TEXT("DialogueAssetEditorApp");
 const FName DialogueEditorGraphTabId = TEXT("DialogueAssetEditor_Graph");
 const FName FDialogueAssetEditorToolkit::DialogueEditorDetailsTabId(TEXT("DialogueEditor_Details"));
 
-static void EnsureStartNode(UDialogueGraph* Graph)
+static void EnsureStartGizmo(UDialogueGraph* Graph)
 {
     if (!Graph) return;
 
     for (UEdGraphNode* Node : Graph->Nodes)
     {
-        if (UDialogueGraphNode* DNode = Cast<UDialogueGraphNode>(Node))
+        if (Cast<UDialogueStartGizmo>(Node))
         {
-            if (DNode->NodeType == EDialogueGraphNodeType::Start)
-                return;
+            return; // Gizmo already exists
         }
     }
 
     Graph->Modify();
 
-    UDialogueGraphNode* Start = NewObject<UDialogueGraphNode>(Graph, UDialogueGraphNode::StaticClass(), NAME_None, RF_Transactional);
-    Start->Modify();
-    Start->NodeType = EDialogueGraphNodeType::Start;
+    UDialogueStartGizmo* Gizmo = NewObject<UDialogueStartGizmo>(Graph, UDialogueStartGizmo::StaticClass(), NAME_None, RF_Transactional);
+    Gizmo->Modify();
+    Gizmo->NodePosX = 0;
+    Gizmo->NodePosY = 0;
 
-    if (Start->NodeId.IsNone())
-    {
-        Start->NodeId = FName(*FGuid::NewGuid().ToString(EGuidFormats::Digits));
-    }
-
-    Start->NodePosX = 0;
-    Start->NodePosY = 0;
-
-    Graph->AddNode(Start, true, true);
-    Start->AllocateDefaultPins();
+    Graph->AddNode(Gizmo, true, true);
+    Gizmo->AllocateDefaultPins();
     Graph->NotifyGraphChanged();
 }
 
@@ -75,7 +67,7 @@ void FDialogueAssetEditorToolkit::Initialize(UDialogueAsset* InDialogueAsset)
     }
     DialogueGraph = DialogueAsset->EditorGraph;
 
-    EnsureStartNode(DialogueGraph);
+    EnsureStartGizmo(DialogueGraph);
 
     for (UEdGraphNode* Node : DialogueGraph->Nodes)
     {
@@ -250,7 +242,7 @@ void FDialogueAssetEditorToolkit::DeleteSelectedNodes()
         }
     }
 
-    DialogueGraph->NotifyGraphChanged();
+    EnsureStartGizmo(DialogueGraph);
 }
 
 #undef LOCTEXT_NAMESPACE

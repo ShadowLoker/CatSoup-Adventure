@@ -13,16 +13,12 @@ namespace DialogueSchemaActions
 {
     struct FDialogueNewNodeAction : public FEdGraphSchemaAction
     {
-        EDialogueGraphNodeType Type;
-
         FDialogueNewNodeAction(
             const FText& InCategory,
             const FText& InMenuDesc,
             const FText& InToolTip,
-            int32 InGrouping,
-            EDialogueGraphNodeType InType)
+            int32 InGrouping)
             : FEdGraphSchemaAction(InCategory, InMenuDesc, InToolTip, InGrouping)
-            , Type(InType)
         {}
 
         virtual UEdGraphNode* PerformAction(
@@ -36,25 +32,11 @@ namespace DialogueSchemaActions
                 return nullptr;
             }
 
-            // Enforce single Start node
-            if (Type == EDialogueGraphNodeType::Start)
-            {
-                for (UEdGraphNode* Node : ParentGraph->Nodes)
-                {
-                    const UDialogueGraphNode* DNode = Cast<UDialogueGraphNode>(Node);
-                    if (DNode && DNode->NodeType == EDialogueGraphNodeType::Start)
-                    {
-                        return nullptr;
-                    }
-                }
-            }
-
             const FScopedTransaction Transaction(
                 NSLOCTEXT("DialogueGraph", "AddDialogueNode", "Add Dialogue Node"));
 
             ParentGraph->Modify();
 
-            // Create node (Outer = graph)
             UDialogueGraphNode* NewNode = NewObject<UDialogueGraphNode>(
                 ParentGraph,
                 UDialogueGraphNode::StaticClass(),
@@ -67,46 +49,32 @@ namespace DialogueSchemaActions
             }
 
             NewNode->Modify();
-            NewNode->NodeType = Type;
 
-            // Stable id
             if (NewNode->NodeId.IsNone())
             {
                 NewNode->NodeId = FName(*FGuid::NewGuid().ToString(EGuidFormats::Digits));
             }
 
-            // Defaults
-            if (Type == EDialogueGraphNodeType::Dialogue)
+            if (NewNode->NodeData.Text.IsEmpty())
             {
-                if (NewNode->NodeData.Text.IsEmpty())
-                {
-                    NewNode->NodeData.Text = FText::FromString(TEXT("..."));
-                }
-
-                if (NewNode->NodeData.Outputs.Num() == 0)
-                {
-                    NewNode->NodeData.Outputs.AddDefaulted();
-                    NewNode->NodeData.Outputs[0].Text = FText::FromString(TEXT("Next"));
-                }
-            }
-            else if (Type == EDialogueGraphNodeType::Start)
-            {
-                // Start node doesn't need dialogue outputs data (pins are handled by AllocateDefaultPins)
-                NewNode->NodeData.Outputs.Empty();
+                NewNode->NodeData.Text = FText::FromString(TEXT("..."));
             }
 
-            // Position
+            if (NewNode->NodeData.Outputs.Num() == 0)
+            {
+                NewNode->NodeData.Outputs.AddDefaulted();
+                NewNode->NodeData.Outputs[0].Text = FText::FromString(TEXT("Next"));
+            }
+
             NewNode->NodePosX = (int32)Location.X;
             NewNode->NodePosY = (int32)Location.Y;
 
-            // Add + build pins
             ParentGraph->AddNode(NewNode, /*bFromUI=*/true, bSelectNewNode);
             NewNode->AllocateDefaultPins();
 
-            // If created from an existing pin, try to connect it
+            // If created from a pin (e.g. drag to empty space), auto-connect
             NewNode->AutowireNewNode(FromPin);
 
-            // Notify editor
             NewNode->PostEditChange();
             ParentGraph->NotifyGraphChanged();
 
@@ -131,17 +99,9 @@ void UDialogueGraphSchema::GetGraphContextActions(FGraphContextMenuBuilder& Cont
 
     ContextMenuBuilder.AddAction(MakeShared<DialogueSchemaActions::FDialogueNewNodeAction>(
         Category,
-        LOCTEXT("AddStartNode", "Add Start Node"),
-        LOCTEXT("AddStartNodeTooltip", "Creates the start node of the dialogue."),
-        0,
-        EDialogueGraphNodeType::Start));
-
-    ContextMenuBuilder.AddAction(MakeShared<DialogueSchemaActions::FDialogueNewNodeAction>(
-        Category,
         LOCTEXT("AddDialogueNode", "Add Dialogue Node"),
-        LOCTEXT("AddDialogueNodeTooltip", "Creates a dialogue node."),
-        0,
-        EDialogueGraphNodeType::Dialogue));
+        LOCTEXT("AddDialogueNodeTooltip", "Creates a dialogue node. Connect the Start gizmo to a node's From pin to set where the dialogue begins."),
+        0));
 }
 
 const FPinConnectionResponse UDialogueGraphSchema::CanCreateConnection(
@@ -176,19 +136,20 @@ void UDialogueGraphSchema::GetContextMenuActions(UToolMenu* Menu, UGraphNodeCont
     {
         FToolMenuSection& Section = Menu->AddSection("DialoguePin", FText::FromString("Pin"));
         const UEdGraphPin* PinConst = Context->Pin;
-        UDialogueGraphNode* DNode = PinConst ? Cast<UDialogueGraphNode>(const_cast<UEdGraphNode*>(PinConst->GetOwningNode())) : nullptr;
+        UEdGraphNode* PinOwner = PinConst ? const_cast<UEdGraphNode*>(PinConst->GetOwningNode()) : nullptr;
+        UDialogueGraphNode* DNode = Cast<UDialogueGraphNode>(PinOwner);
         const FName PinName = PinConst ? PinConst->PinName : NAME_None;
 
-        TWeakObjectPtr<UDialogueGraphNode> WeakDNode = DNode;
+        TWeakObjectPtr<UEdGraphNode> WeakPinOwner(PinOwner);
 
         Section.AddMenuEntry(
             "DialogueBreakPinLinks",
             FText::FromString("Break Links"),
             FText::FromString("Break all links from this pin"),
             FSlateIcon(),
-            FUIAction(FExecuteAction::CreateLambda([WeakDNode, PinName]()
+            FUIAction(FExecuteAction::CreateLambda([WeakPinOwner, PinName]()
             {
-                UEdGraphNode* Node = WeakDNode.Get();
+                UEdGraphNode* Node = WeakPinOwner.Get();
                 if (!Node || PinName.IsNone())
                     return;
 
@@ -215,10 +176,10 @@ void UDialogueGraphSchema::GetContextMenuActions(UToolMenu* Menu, UGraphNodeCont
             }))
         );
 
-        // Remove Output: for output pins of Dialogue nodes when more than one output exists
+        // Remove Output: for output pins of Dialogue nodes (not Gizmo) when more than one output exists
+        TWeakObjectPtr<UDialogueGraphNode> WeakDNode(DNode);
         int32 OutIndex = INDEX_NONE;
         if (DNode && PinConst->Direction == EGPD_Output && TryParseOutIndex(PinName, OutIndex) &&
-            DNode->NodeType == EDialogueGraphNodeType::Dialogue &&
             DNode->NodeData.Outputs.Num() > 1 && DNode->NodeData.Outputs.IsValidIndex(OutIndex))
         {
             Section.AddMenuEntry(
@@ -249,7 +210,7 @@ void UDialogueGraphSchema::GetContextMenuActions(UToolMenu* Menu, UGraphNodeCont
     if (Context->Node)
     {
         FToolMenuSection& Section = Menu->AddSection("DialogueNode", FText::FromString("Node"));
-        TWeakObjectPtr<const UEdGraphNode> WeakNode = Context->Node; // TObjectPtr<const UEdGraphNode>
+        TWeakObjectPtr<const UEdGraphNode> WeakNode = Context->Node;
 
         Section.AddMenuEntry(
             "DialogueBreakNodeLinks",
@@ -279,7 +240,7 @@ static void UpdateNextNodeFromPinLink(UEdGraphPin* OutPin)
     if (!OutPin || OutPin->Direction != EGPD_Output) return;
 
     UDialogueGraphNode* FromNode = Cast<UDialogueGraphNode>(OutPin->GetOwningNode());
-    if (!FromNode || FromNode->NodeType == EDialogueGraphNodeType::Start) return;
+    if (!FromNode) return;
 
     int32 OutIndex = INDEX_NONE;
     if (!TryParseOutIndex(OutPin->PinName, OutIndex)) return;
@@ -292,8 +253,7 @@ static void UpdateNextNodeFromPinLink(UEdGraphPin* OutPin)
     {
         if (UDialogueGraphNode* ToNode = Cast<UDialogueGraphNode>(OutPin->LinkedTo[0]->GetOwningNode()))
         {
-            if (ToNode->NodeType != EDialogueGraphNodeType::Start)
-                NewNext = ToNode->NodeId;
+            NewNext = ToNode->NodeId;
         }
     }
 

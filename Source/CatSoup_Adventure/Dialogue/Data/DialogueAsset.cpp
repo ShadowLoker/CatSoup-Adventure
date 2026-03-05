@@ -2,6 +2,7 @@
 #include "Dialogue/Data/DialogueAsset.h"
 #include "Dialogue/Graph/DialogueGraph.h"
 #include "Dialogue/Graph/DialogueGraphNode.h"
+#include "Dialogue/Graph/DialogueStartGizmo.h"
 #include "UObject/ObjectSaveContext.h"
 
 static bool TryParseOutIndex(const FName& PinName, int32& OutIndex)
@@ -34,83 +35,44 @@ void UDialogueAsset::CompileFromGraph()
         return;
     }
 
-    // --- 1) Find Start node ---
-    UDialogueGraphNode* StartNode = nullptr;
-
+    // --- 1) Find Start Gizmo and get node connected to its output ---
+    UDialogueStartGizmo* StartGizmo = nullptr;
     for (UEdGraphNode* Node : EditorGraph->Nodes)
     {
-        if (UDialogueGraphNode* DNode = Cast<UDialogueGraphNode>(Node))
+        if (UDialogueStartGizmo* Gizmo = Cast<UDialogueStartGizmo>(Node))
         {
-            if (DNode->NodeType == EDialogueGraphNodeType::Start)
-            {
-                StartNode = DNode;
-                break;
-            }
+            StartGizmo = Gizmo;
+            break;
         }
     }
 
-    if (!StartNode)
+    if (StartGizmo)
     {
-        UE_LOG(LogTemp, Warning, TEXT("CompileFromGraph: No Start node found"));
+        for (UEdGraphPin* Pin : StartGizmo->Pins)
+        {
+            if (Pin && Pin->Direction == EGPD_Output && Pin->LinkedTo.Num() > 0 && Pin->LinkedTo[0])
+            {
+                if (UDialogueGraphNode* Target = Cast<UDialogueGraphNode>(Pin->LinkedTo[0]->GetOwningNode()))
+                {
+                    StartNodeId = Target->NodeId;
+                    break;
+                }
+            }
+        }
     }
-    else
+
+    if (StartNodeId.IsNone())
     {
-        // --- 2) StartNodeId = NodeId of node connected from Start.Out_0 ---
-        UEdGraphPin* StartOutPin = nullptr;
-
-        for (UEdGraphPin* Pin : StartNode->Pins)
-        {
-            if (Pin && Pin->Direction == EGPD_Output && Pin->PinName == FName(TEXT("Out_0")))
-            {
-                StartOutPin = Pin;
-                break;
-            }
-        }
-
-        if (!StartOutPin)
-        {
-            UE_LOG(LogTemp, Warning, TEXT("CompileFromGraph: Start node has no Out_0 pin"));
-        }
-        else if (StartOutPin->LinkedTo.Num() == 0 || !StartOutPin->LinkedTo[0])
-        {
-            UE_LOG(LogTemp, Warning, TEXT("CompileFromGraph: Start node is not connected to any dialogue node"));
-        }
-        else
-        {
-            UEdGraphNode* TargetUE = StartOutPin->LinkedTo[0]->GetOwningNode();
-            UDialogueGraphNode* Target = Cast<UDialogueGraphNode>(TargetUE);
-
-            if (!Target)
-            {
-                UE_LOG(LogTemp, Warning, TEXT("CompileFromGraph: Start node connected to non-dialogue node"));
-            }
-            else if (Target->NodeType == EDialogueGraphNodeType::Start)
-            {
-                UE_LOG(LogTemp, Warning, TEXT("CompileFromGraph: Start node connected to Start node (invalid)"));
-            }
-            else
-            {
-                StartNodeId = Target->NodeId;
-            }
-        }
+        UE_LOG(LogTemp, Warning, TEXT("CompileFromGraph: Start gizmo not connected to a dialogue node"));
     }
 
-    // --- 3) Build runtime Nodes map from all Dialogue nodes ---
+    // --- 2) Build runtime Nodes map from all Dialogue nodes ---
     for (UEdGraphNode* Node : EditorGraph->Nodes)
     {
         UDialogueGraphNode* DNode = Cast<UDialogueGraphNode>(Node);
         if (!DNode)
         {
-            if (Node)
-            {
-                UE_LOG(LogTemp, Warning, TEXT("CompileFromGraph: Non-dialogue node found: %s"), *Node->GetName());
-            }
-            continue;
-        }
-
-        if (DNode->NodeType == EDialogueGraphNodeType::Start)
-        {
-            continue; // runtime map stores only dialogue nodes
+            continue; // Skip Start Gizmo and other non-dialogue nodes
         }
 
         if (DNode->NodeId.IsNone())
@@ -158,10 +120,7 @@ void UDialogueAsset::CompileFromGraph()
             {
                 if (UDialogueGraphNode* Target = Cast<UDialogueGraphNode>(Pin->LinkedTo[0]->GetOwningNode()))
                 {
-                    if (Target->NodeType != EDialogueGraphNodeType::Start)
-                    {
-                        NextId = Target->NodeId;
-                    }
+                    NextId = Target->NodeId;
                 }
             }
 
