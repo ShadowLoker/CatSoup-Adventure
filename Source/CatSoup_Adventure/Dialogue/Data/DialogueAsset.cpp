@@ -3,6 +3,7 @@
 #include "Dialogue/Graph/DialogueGraph.h"
 #include "Dialogue/Graph/DialogueGraphNode.h"
 #include "Dialogue/Graph/DialogueStartGizmo.h"
+#include "Dialogue/Graph/DialogueEndGizmo.h"
 #include "UObject/ObjectSaveContext.h"
 
 static bool TryParseOutIndex(const FName& PinName, int32& OutIndex)
@@ -83,13 +84,14 @@ void UDialogueAsset::CompileFromGraph()
 
         FDialogueNode CompiledData = DNode->NodeData;
 
-        // Clear all next links first (so stale data doesn't survive)
+        // Clear all next links and enabled state first (so stale data doesn't survive)
         for (auto& Out : CompiledData.Outputs)
         {
             Out.NextNodeId = NAME_None;
+            Out.bEnabled = false;
         }
 
-        // Read pin links and fill NextNodeId per output index
+        // Read pin links and fill NextNodeId + bEnabled per output index
         for (UEdGraphPin* Pin : DNode->Pins)
         {
             if (!Pin || Pin->Direction != EGPD_Output)
@@ -100,7 +102,6 @@ void UDialogueAsset::CompileFromGraph()
             int32 OutIndex = INDEX_NONE;
             if (!TryParseOutIndex(Pin->PinName, OutIndex))
             {
-                // Ignore non "Out_X" pins
                 continue;
             }
 
@@ -115,16 +116,25 @@ void UDialogueAsset::CompileFromGraph()
             }
 
             FName NextId = NAME_None;
+            bool bWired = false;
 
             if (Pin->LinkedTo.Num() > 0 && Pin->LinkedTo[0])
             {
-                if (UDialogueGraphNode* Target = Cast<UDialogueGraphNode>(Pin->LinkedTo[0]->GetOwningNode()))
+                UEdGraphNode* Target = Pin->LinkedTo[0]->GetOwningNode();
+                if (UDialogueGraphNode* DTarget = Cast<UDialogueGraphNode>(Target))
                 {
-                    NextId = Target->NodeId;
+                    NextId = DTarget->NodeId;
+                    bWired = true;
+                }
+                else if (Cast<UDialogueEndGizmo>(Target))
+                {
+                    // Connected to End node = end of dialogue (NextId stays NAME_None)
+                    bWired = true;
                 }
             }
 
             CompiledData.Outputs[OutIndex].NextNodeId = NextId;
+            CompiledData.Outputs[OutIndex].bEnabled = bWired;
         }
 
         Nodes.Add(DNode->NodeId, CompiledData);

@@ -12,6 +12,7 @@
 #include "EdGraph/EdGraphSchema.h"
 #include "ScopedTransaction.h"
 #include "Dialogue/Schema/DialogueGraphSchema.h"
+#include "Dialogue/Graph/DialogueEndGizmo.h"
 
 #include "IDetailsView.h"
 #include "Framework/Commands/GenericCommands.h"
@@ -21,6 +22,30 @@
 const FName DialogueEditorAppIdentifier = TEXT("DialogueAssetEditorApp");
 const FName DialogueEditorGraphTabId = TEXT("DialogueAssetEditor_Graph");
 const FName FDialogueAssetEditorToolkit::DialogueEditorDetailsTabId(TEXT("DialogueEditor_Details"));
+
+static void EnsureEndGizmo(UDialogueGraph* Graph)
+{
+    if (!Graph) return;
+
+    for (UEdGraphNode* Node : Graph->Nodes)
+    {
+        if (Cast<UDialogueEndGizmo>(Node))
+        {
+            return; // End gizmo already exists
+        }
+    }
+
+    Graph->Modify();
+
+    UDialogueEndGizmo* Gizmo = NewObject<UDialogueEndGizmo>(Graph, UDialogueEndGizmo::StaticClass(), NAME_None, RF_Transactional);
+    Gizmo->Modify();
+    Gizmo->NodePosX = 200;
+    Gizmo->NodePosY = 0;
+
+    Graph->AddNode(Gizmo, true, true);
+    Gizmo->AllocateDefaultPins();
+    Graph->NotifyGraphChanged();
+}
 
 static void EnsureStartGizmo(UDialogueGraph* Graph)
 {
@@ -68,6 +93,7 @@ void FDialogueAssetEditorToolkit::Initialize(UDialogueAsset* InDialogueAsset)
     DialogueGraph = DialogueAsset->EditorGraph;
 
     EnsureStartGizmo(DialogueGraph);
+    EnsureEndGizmo(DialogueGraph);
 
     for (UEdGraphNode* Node : DialogueGraph->Nodes)
     {
@@ -243,6 +269,7 @@ void FDialogueAssetEditorToolkit::DeleteSelectedNodes()
     }
 
     EnsureStartGizmo(DialogueGraph);
+    EnsureEndGizmo(DialogueGraph);
 }
 
 #undef LOCTEXT_NAMESPACE

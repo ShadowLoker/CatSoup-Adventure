@@ -47,7 +47,11 @@ void UDialogueSession::ProcessCurrentNode()
 	{
 		for (int32 i = 0; i < NumOutputs; ++i)
 		{
-			Payload.Choices.Add({ i, Node->Outputs[i].Text });
+			// Only include wired choices (unwired = disabled, not applied)
+			if (Node->Outputs[i].bEnabled)
+			{
+				Payload.Choices.Add({ i, Node->Outputs[i].Text });
+			}
 		}
 	}
 	UE_LOG(LogTemp, Warning, TEXT("OnLineStarted broadcast - Speaker: %s, Text: %s"), *Node->SpeakerId.ToString(), *Node->Text.ToString());

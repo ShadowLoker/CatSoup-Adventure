@@ -1,5 +1,7 @@
 #include "DialogueGraphSchema.h"
 #include "Dialogue/Graph/DialogueGraphNode.h"
+#include "Dialogue/Graph/DialogueStartGizmo.h"
+#include "Dialogue/Graph/DialogueEndGizmo.h"
 #include "Dialogue/Graph/DialogueGraphPins.h"
 #include "Framework/Commands/UIAction.h"
 #include "GraphEditor.h"
@@ -90,6 +92,63 @@ namespace DialogueSchemaActions
             return NewNode;
         }
     };
+
+    struct FDialogueAddEndNodeAction : public FEdGraphSchemaAction
+    {
+        FDialogueAddEndNodeAction(
+            const FText& InCategory,
+            const FText& InMenuDesc,
+            const FText& InToolTip,
+            int32 InGrouping)
+            : FEdGraphSchemaAction(InCategory, InMenuDesc, InToolTip, InGrouping) {}
+
+        virtual UEdGraphNode* PerformAction(
+            UEdGraph* ParentGraph,
+            UEdGraphPin* FromPin,
+            const FVector2D Location,
+            bool bSelectNewNode) override
+        {
+            if (!ParentGraph) return nullptr;
+
+            const FScopedTransaction Transaction(
+                NSLOCTEXT("DialogueGraph", "AddEndNode", "Add End Node"));
+
+            ParentGraph->Modify();
+
+            UDialogueEndGizmo* EndNode = NewObject<UDialogueEndGizmo>(
+                ParentGraph,
+                UDialogueEndGizmo::StaticClass(),
+                NAME_None,
+                RF_Transactional);
+
+            if (!EndNode) return nullptr;
+
+            EndNode->Modify();
+            EndNode->NodePosX = (int32)Location.X;
+            EndNode->NodePosY = (int32)Location.Y;
+
+            ParentGraph->AddNode(EndNode, true, bSelectNewNode);
+            EndNode->AllocateDefaultPins();
+
+            if (FromPin && FromPin->Direction == EGPD_Output)
+            {
+                UEdGraphPin* InPin = nullptr;
+                for (UEdGraphPin* P : EndNode->Pins)
+                {
+                    if (P && P->Direction == EGPD_Input) { InPin = P; break; }
+                }
+                if (InPin && ParentGraph->GetSchema()->TryCreateConnection(FromPin, InPin))
+                {
+                    ParentGraph->NotifyGraphChanged();
+                }
+            }
+
+            EndNode->PostEditChange();
+            ParentGraph->NotifyGraphChanged();
+
+            return EndNode;
+        }
+    };
 }
 
 static bool TryParseOutIndex(const FName& PinName, int32& OutIndex)
@@ -111,6 +170,12 @@ void UDialogueGraphSchema::GetGraphContextActions(FGraphContextMenuBuilder& Cont
         LOCTEXT("AddDialogueNode", "Add Dialogue Node"),
         LOCTEXT("AddDialogueNodeTooltip", "Creates a dialogue node. Connect the Start gizmo to a node's From pin to set where the dialogue begins."),
         0));
+
+    ContextMenuBuilder.AddAction(MakeShared<DialogueSchemaActions::FDialogueAddEndNodeAction>(
+        Category,
+        LOCTEXT("AddEndNode", "Add End Node"),
+        LOCTEXT("AddEndNodeTooltip", "Creates an End node. Connect choice pins here to mark where the dialogue ends."),
+        1));
 }
 
 const FPinConnectionResponse UDialogueGraphSchema::CanCreateConnection(
@@ -129,8 +194,31 @@ const FPinConnectionResponse UDialogueGraphSchema::CanCreateConnection(
     const UEdGraphPin* OutPin = (A->Direction == EGPD_Output) ? A : B;
     const UEdGraphPin* InPin  = (A->Direction == EGPD_Input)  ? A : B;
 
-    // Allow all valid flow connections. Both Start and Dialogue outputs accept multiple connections.
-    // Runtime uses the first connection (LinkedTo[0]) for the flow path.
+    // Output must be from Dialogue node or Start gizmo
+    UEdGraphNode* OutOwner = OutPin->GetOwningNode();
+    if (!OutOwner) return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Invalid output"));
+
+    // Input must be Dialogue node or End gizmo (Start output -> Dialogue only; Dialogue output -> Dialogue or End)
+    UEdGraphNode* InOwner = InPin->GetOwningNode();
+    if (!InOwner) return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Invalid input"));
+
+    if (Cast<UDialogueStartGizmo>(OutOwner))
+    {
+        // Start output can only connect to Dialogue input
+        if (!Cast<UDialogueGraphNode>(InOwner))
+            return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Start must connect to a Dialogue node"));
+    }
+    else if (Cast<UDialogueGraphNode>(OutOwner))
+    {
+        // Dialogue output can connect to Dialogue input or End input
+        if (!Cast<UDialogueGraphNode>(InOwner) && !Cast<UDialogueEndGizmo>(InOwner))
+            return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Dialogue output must connect to a Dialogue node or End node"));
+    }
+    else
+    {
+        return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Output must be from Start or Dialogue node"));
+    }
+
     return FPinConnectionResponse(CONNECT_RESPONSE_MAKE, TEXT(""));
 }
 
@@ -388,10 +476,12 @@ static void UpdateNextNodeFromPinLink(UEdGraphPin* OutPin)
     FName NewNext = NAME_None;
     if (OutPin->LinkedTo.Num() > 0 && OutPin->LinkedTo[0])
     {
-        if (UDialogueGraphNode* ToNode = Cast<UDialogueGraphNode>(OutPin->LinkedTo[0]->GetOwningNode()))
+        UEdGraphNode* ToNode = OutPin->LinkedTo[0]->GetOwningNode();
+        if (UDialogueGraphNode* DNode = Cast<UDialogueGraphNode>(ToNode))
         {
-            NewNext = ToNode->NodeId;
+            NewNext = DNode->NodeId;
         }
+        // Connected to End gizmo: NewNext stays NAME_None (end of dialogue)
     }
 
     FromNode->NodeData.Outputs[OutIndex].NextNodeId = NewNext;

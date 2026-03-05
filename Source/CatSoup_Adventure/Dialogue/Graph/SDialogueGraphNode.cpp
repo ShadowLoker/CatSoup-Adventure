@@ -1,6 +1,7 @@
 #include "SDialogueGraphNode.h"
 
 #include "Dialogue/Graph/DialogueGraphNode.h"
+#include "Dialogue/Graph/DialogueEndGizmo.h"
 #include "EdGraph/EdGraphPin.h"
 #include "SGraphPin.h"
 #include "Styling/AppStyle.h"
@@ -199,16 +200,18 @@ void SDialogueGraphNode::AddPin(const TSharedRef<SGraphPin>& PinToAdd)
 
     const int32 Index = OutIndex;
     TWeakObjectPtr<UDialogueGraphNode> WeakNode(DNode);
+    UEdGraphPin* PinPtr = const_cast<UEdGraphPin*>(PinObj);
 
-    RightNodeBox->AddSlot()
-        .AutoHeight()
-        .Padding(0, 2.f)
+    TSharedRef<SWidget> RowContent = SNew(SHorizontalBox)
+        + SHorizontalBox::Slot()
+        .FillWidth(1.f)
+        .VAlign(VAlign_Center)
+        .Padding(0, 0, 8, 0)
         [
             SNew(SHorizontalBox)
             + SHorizontalBox::Slot()
             .FillWidth(1.f)
             .VAlign(VAlign_Center)
-            .Padding(0, 0, 8, 0)
             [
                 SNew(SEditableTextBox)
                 .MinDesiredWidth(80.f)
@@ -230,10 +233,58 @@ void SDialogueGraphNode::AddPin(const TSharedRef<SGraphPin>& PinToAdd)
             ]
             + SHorizontalBox::Slot()
             .AutoWidth()
-            .HAlign(HAlign_Right)
+            .Padding(4, 0, 0, 0)
             .VAlign(VAlign_Center)
             [
-                PinToAdd
+                SNew(STextBlock)
+                .Text(FText::FromString(TEXT("Not used")))
+                .ColorAndOpacity(FSlateColor(FLinearColor(0.9f, 0.3f, 0.2f, 1.f)))
+                .Font(FAppStyle::GetFontStyle("SmallFont"))
+                .Visibility(TAttribute<EVisibility>::CreateLambda([PinPtr]()
+                {
+                    return (PinPtr && PinPtr->LinkedTo.Num() > 0) ? EVisibility::Collapsed : EVisibility::Visible;
+                }))
+            ]
+            + SHorizontalBox::Slot()
+            .AutoWidth()
+            .Padding(4, 0, 0, 0)
+            .VAlign(VAlign_Center)
+            [
+                SNew(STextBlock)
+                .Text(FText::FromString(TEXT("End")))
+                .ColorAndOpacity(FSlateColor(FLinearColor(0.7f, 0.5f, 0.5f, 1.f)))
+                .Font(FAppStyle::GetFontStyle("SmallFont"))
+                .Visibility(TAttribute<EVisibility>::CreateLambda([PinPtr]()
+                {
+                    if (!PinPtr || PinPtr->LinkedTo.Num() == 0) return EVisibility::Collapsed;
+                    UEdGraphNode* Target = PinPtr->LinkedTo[0]->GetOwningNode();
+                    return Target && Cast<UDialogueEndGizmo>(Target) ? EVisibility::Visible : EVisibility::Collapsed;
+                }))
+            ]
+        ]
+        + SHorizontalBox::Slot()
+        .AutoWidth()
+        .HAlign(HAlign_Right)
+        .VAlign(VAlign_Center)
+        [
+            PinToAdd
+        ];
+
+    RightNodeBox->AddSlot()
+        .AutoHeight()
+        .Padding(0, 2.f)
+        [
+            SNew(SBorder)
+            .BorderImage(FAppStyle::GetBrush("WhiteBrush"))
+            .BorderBackgroundColor(TAttribute<FSlateColor>::CreateLambda([PinPtr]()
+            {
+                return (PinPtr && PinPtr->LinkedTo.Num() > 0)
+                    ? FSlateColor(FLinearColor(0.f, 0.f, 0.f, 0.f))
+                    : FSlateColor(FLinearColor(0.4f, 0.12f, 0.12f, 0.5f));
+            }))
+            .Padding(4.f)
+            [
+                RowContent
             ]
         ];
     OutputPins.Add(PinToAdd);

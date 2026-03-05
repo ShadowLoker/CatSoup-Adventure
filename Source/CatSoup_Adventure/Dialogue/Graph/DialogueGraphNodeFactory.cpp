@@ -1,14 +1,20 @@
 #include "DialogueGraphNodeFactory.h"
 #include "Dialogue/Graph/DialogueGraphNode.h"
 #include "Dialogue/Graph/DialogueStartGizmo.h"
+#include "Dialogue/Graph/DialogueEndGizmo.h"
 #include "SDialogueGraphNode.h"
 #include "SDialogueStartGizmo.h"
+#include "SDialogueEndGizmo.h"
 
 TSharedPtr<SGraphNode> FDialogueGraphNodeFactory::CreateNode(UEdGraphNode* Node) const
 {
 	if (UDialogueStartGizmo* Gizmo = Cast<UDialogueStartGizmo>(Node))
 	{
 		return SNew(SDialogueStartGizmo, Gizmo);
+	}
+	if (UDialogueEndGizmo* EndGizmo = Cast<UDialogueEndGizmo>(Node))
+	{
+		return SNew(SDialogueEndGizmo, EndGizmo);
 	}
 	if (UDialogueGraphNode* DNode = Cast<UDialogueGraphNode>(Node))
 	{

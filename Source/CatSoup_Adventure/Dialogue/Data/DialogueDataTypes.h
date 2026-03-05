@@ -7,19 +7,21 @@
 #include "DialogueDataTypes.generated.h"
 
 USTRUCT(BlueprintType)
-	/** Label shown to the player (e.g. "Yes", "No"). For 1-output "continue" flow, often empty. */
 struct FDialogueOutput
 {
-	/** Map key of the node to jump to when this output is chosen. Empty = end dialogue. */
 	GENERATED_BODY()
 
+	/** Label shown to the player (e.g. "Yes", "No"). For 1-output "continue" flow, often empty. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (DisplayName = "Label"))
-/** One step in the dialogue. Identified by its map key in UDialogueAsset::Nodes. */
 	FText Text;
 
+	/** Map key of the node to jump to when this output is chosen. Empty = end dialogue. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (DisplayName = "Next Node"))
 	FName NextNodeId;
-	/** Who is speaking (e.g. "NPC", "Player"). UI uses this for portrait/name. */
+
+	/** True when this output is wired in the graph. Unwired outputs are disabled and not shown at runtime. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bEnabled = true;
 };
 
 	/** The line of text to display. */
