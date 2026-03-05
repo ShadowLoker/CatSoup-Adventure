@@ -9,6 +9,7 @@ public class CatSoup_Adventure : ModuleRules
 	{
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
+			"AppFramework",
 			"EditorStyle",  
 			"AssetTools", 
 			"UnrealEd", 

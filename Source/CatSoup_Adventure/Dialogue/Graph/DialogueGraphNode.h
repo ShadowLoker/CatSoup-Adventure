@@ -20,6 +20,10 @@ public:
 	UPROPERTY(EditAnywhere, Category="Dialogue")
 	FName NodeId;
 
+	/** Node color for visual organization of dialogue paths. Editable via right-click context menu. */
+	UPROPERTY(EditAnywhere, Category="Dialogue")
+	FLinearColor NodeColor = FLinearColor(0.05f, 0.05f, 0.05f, 0.8f);
+
 	/** When set before ReconstructNode, output at this index was removed; restore skips it so remaining outputs get correct links. */
 	int32 RemovedOutputIndexDuringReconstruct = -1;
 

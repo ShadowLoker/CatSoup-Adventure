@@ -32,11 +32,12 @@ void SDialogueGraphNode::UpdateGraphNode()
     TSharedPtr<SVerticalBox> MainVBox;
 
     // Core layout: [Left Pins] [Center Content] [Right Pins]
+    const FLinearColor NodeColor = DNode ? DNode->NodeColor : FLinearColor(0.05f, 0.05f, 0.05f, 0.8f);
     this->GetOrAddSlot(ENodeZone::Center)
     [
         SNew(SBorder)
         .BorderImage(FAppStyle::GetBrush("WhiteBrush"))
-        .BorderBackgroundColor(FLinearColor(0.05f, 0.05f, 0.05f, 0.8f))
+        .BorderBackgroundColor(NodeColor)
         .Padding(10)
         [
             SNew(SHorizontalBox)

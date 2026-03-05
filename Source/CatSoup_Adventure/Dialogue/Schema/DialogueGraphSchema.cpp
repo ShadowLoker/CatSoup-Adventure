@@ -1,10 +1,19 @@
 #include "DialogueGraphSchema.h"
 #include "Dialogue/Graph/DialogueGraphNode.h"
 #include "Dialogue/Graph/DialogueGraphPins.h"
+#include "Framework/Commands/UIAction.h"
+#include "GraphEditor.h"
 #include "ScopedTransaction.h"
-#include "ToolMenus.h"
 #include "ToolMenu.h"
+#include "ToolMenuDelegates.h"
+#include "ToolMenus.h"
+#include "ToolMenuEntry.h"
 #include "ToolMenuSection.h"
+#include "Widgets/Colors/SColorBlock.h"
+#include "Widgets/Colors/SColorPicker.h"
+#include "Widgets/Layout/SBox.h"
+#include "Widgets/SBoxPanel.h"
+#include "Widgets/Text/STextBlock.h"
 
 
 #define LOCTEXT_NAMESPACE "DialogueGraphSchema"
@@ -211,6 +220,134 @@ void UDialogueGraphSchema::GetContextMenuActions(UToolMenu* Menu, UGraphNodeCont
     {
         FToolMenuSection& Section = Menu->AddSection("DialogueNode", FText::FromString("Node"));
         TWeakObjectPtr<const UEdGraphNode> WeakNode = Context->Node;
+        UDialogueGraphNode* DNode = Context->Node ? Cast<UDialogueGraphNode>(const_cast<UEdGraphNode*>(Context->Node.Get())) : nullptr;
+
+        if (DNode)
+        {
+            // Collect all selected dialogue nodes (or just the right-clicked one if none selected)
+            TArray<TWeakObjectPtr<UDialogueGraphNode>> SelectedDialogueNodes;
+            if (Context->Graph)
+            {
+                if (TSharedPtr<SGraphEditor> GraphEd = SGraphEditor::FindGraphEditorForGraph(Context->Graph))
+                {
+                    const FGraphPanelSelectionSet& Selected = GraphEd->GetSelectedNodes();
+                    for (UObject* Obj : Selected)
+                    {
+                        if (UDialogueGraphNode* DN = Cast<UDialogueGraphNode>(Obj))
+                        {
+                            SelectedDialogueNodes.Add(DN);
+                        }
+                    }
+                }
+            }
+            if (SelectedDialogueNodes.Num() == 0)
+            {
+                SelectedDialogueNodes.Add(DNode);
+            }
+
+            Section.AddSubMenu(
+                "DialogueChangeColor",
+                FText::FromString("Change Color"),
+                SelectedDialogueNodes.Num() > 1
+                    ? FText::Format(INVTEXT("Set color for {0} selected nodes"), FText::AsNumber(SelectedDialogueNodes.Num()))
+                    : FText::FromString(TEXT("Set node color for visual organization of dialogue paths")),
+                FNewToolMenuChoice(FNewToolMenuDelegate::CreateLambda([SelectedDialogueNodes](UToolMenu* SubMenu)
+                {
+                    if (!SubMenu || SelectedDialogueNodes.Num() == 0) return;
+
+                    struct FColorOption { FName Id; FText Label; FLinearColor Color; };
+                    const TArray<FColorOption> Colors = {
+                        { "Default", FText::FromString("Default"), FLinearColor(0.05f, 0.05f, 0.05f, 0.8f) },
+                        { "Red", FText::FromString("Red"), FLinearColor(0.5f, 0.15f, 0.15f, 0.9f) },
+                        { "Blue", FText::FromString("Blue"), FLinearColor(0.15f, 0.2f, 0.5f, 0.9f) },
+                        { "Green", FText::FromString("Green"), FLinearColor(0.1f, 0.4f, 0.15f, 0.9f) },
+                        { "Yellow", FText::FromString("Yellow"), FLinearColor(0.5f, 0.45f, 0.1f, 0.9f) },
+                        { "Orange", FText::FromString("Orange"), FLinearColor(0.55f, 0.3f, 0.1f, 0.9f) },
+                        { "Purple", FText::FromString("Purple"), FLinearColor(0.35f, 0.15f, 0.5f, 0.9f) },
+                        { "Cyan", FText::FromString("Cyan"), FLinearColor(0.1f, 0.4f, 0.45f, 0.9f) },
+                        { "Pink", FText::FromString("Pink"), FLinearColor(0.5f, 0.2f, 0.4f, 0.9f) },
+                    };
+
+                    FToolMenuSection& ColorSection = SubMenu->AddSection("DialogueColors", FText::FromString("Presets"));
+                    for (const FColorOption& Opt : Colors)
+                    {
+                        TSharedRef<SWidget> ColorRow = SNew(SHorizontalBox)
+                            + SHorizontalBox::Slot()
+                            .AutoWidth()
+                            .Padding(0, 0, 8, 0)
+                            .VAlign(VAlign_Center)
+                            [
+                                SNew(SColorBlock)
+                                .Color(Opt.Color)
+                                .Size(FVector2D(14, 14))
+                                .AlphaDisplayMode(EColorBlockAlphaDisplayMode::Ignore)
+                            ]
+                            + SHorizontalBox::Slot()
+                            .FillWidth(1.f)
+                            .VAlign(VAlign_Center)
+                            [
+                                SNew(STextBlock).Text(Opt.Label)
+                            ];
+                        ColorSection.AddEntry(FToolMenuEntry::InitMenuEntry(
+                            Opt.Id,
+                            FUIAction(FExecuteAction::CreateLambda([SelectedDialogueNodes, Opt]()
+                            {
+                                const FScopedTransaction Tx(NSLOCTEXT("DialogueGraph", "ChangeNodeColor", "Change Node Color"));
+                                UEdGraph* Graph = nullptr;
+                                for (const TWeakObjectPtr<UDialogueGraphNode>& WeakN : SelectedDialogueNodes)
+                                {
+                                    if (UDialogueGraphNode* N = WeakN.Get())
+                                    {
+                                        if (!Graph) { Graph = N->GetGraph(); if (Graph) Graph->Modify(); }
+                                        N->Modify();
+                                        N->NodeColor = Opt.Color;
+                                    }
+                                }
+                                if (Graph) Graph->NotifyGraphChanged();
+                            })),
+                            ColorRow
+                        ));
+                    }
+
+                    ColorSection.AddSeparator("CustomSep");
+                    ColorSection.AddMenuEntry(
+                        "DialogueCustomColor",
+                        FText::FromString("Custom..."),
+                        FText::FromString("Open RGB color picker to choose any color"),
+                        FSlateIcon(),
+                        FUIAction(FExecuteAction::CreateLambda([SelectedDialogueNodes]()
+                        {
+                            if (SelectedDialogueNodes.Num() == 0) return;
+                            FLinearColor InitialColor = FLinearColor(0.05f, 0.05f, 0.05f, 0.8f);
+                            if (UDialogueGraphNode* First = SelectedDialogueNodes[0].Get())
+                            {
+                                InitialColor = First->NodeColor;
+                            }
+                            FColorPickerArgs Args;
+                            Args.bUseAlpha = true;
+                            Args.InitialColor = InitialColor;
+                            Args.OnColorCommitted = FOnLinearColorValueChanged::CreateLambda([SelectedDialogueNodes](FLinearColor NewColor)
+                            {
+                                const FScopedTransaction Tx(NSLOCTEXT("DialogueGraph", "ChangeNodeColor", "Change Node Color"));
+                                UEdGraph* Graph = nullptr;
+                                for (const TWeakObjectPtr<UDialogueGraphNode>& WeakN : SelectedDialogueNodes)
+                                {
+                                    if (UDialogueGraphNode* N = WeakN.Get())
+                                    {
+                                        if (!Graph) { Graph = N->GetGraph(); if (Graph) Graph->Modify(); }
+                                        N->Modify();
+                                        N->NodeColor = NewColor;
+                                    }
+                                }
+                                if (Graph) Graph->NotifyGraphChanged();
+                            });
+                            OpenColorPicker(Args);
+                        }))
+                    );
+                })),
+                false
+            );
+        }
 
         Section.AddMenuEntry(
             "DialogueBreakNodeLinks",
