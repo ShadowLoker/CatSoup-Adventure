@@ -24,8 +24,16 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<UDialogueSession> ActiveSession;
 
+	/** Set automatically when dialogue ends via an End node with "NextStart" wired. Next BeginDialogue uses this entry point. */
+	UPROPERTY(BlueprintReadOnly, Category = "Dialogue")
+	FName PendingNextEntryPointId;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "Dialogue")
+	FName EntryPointId = NAME_None; 
+
+	/** Start dialogue. No override: uses graph logic (PendingNextEntryPointId if set from last exit, else default). Override "Default": force default start. Override "Return" etc: force that entry point. */
 	UFUNCTION(BlueprintCallable, Category = "Dialogue")
-	void BeginDialogue(AActor* Interactor);
+	void BeginDialogue(AActor* Interactor, FName EntryPointOverride = NAME_None);
 
 	UFUNCTION(BlueprintCallable, Category = "Dialogue")
 	void EndDialogue();

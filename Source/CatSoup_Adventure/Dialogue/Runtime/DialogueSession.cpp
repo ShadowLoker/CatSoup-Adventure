@@ -13,13 +13,32 @@ void UDialogueSession::Start(UDialogueAsset* InAsset, FName InEntryPointId)
 	Asset = InAsset;
 
 	// Use entry point if provided and found; otherwise default start
-	if (!InEntryPointId.IsNone() && InAsset->EntryPoints.Contains(InEntryPointId))
+	if (!InEntryPointId.IsNone())
 	{
-		CurrentNodeId = InAsset->EntryPoints.FindChecked(InEntryPointId);
+		if (InAsset->EntryPoints.Contains(InEntryPointId))
+		{
+			CurrentNodeId = InAsset->EntryPoints.FindChecked(InEntryPointId);
+			UE_LOG(LogTemp, Log,
+				TEXT("DialogueSession::Start using entry point '%s' -> node '%s'"),
+				*InEntryPointId.ToString(),
+				*CurrentNodeId.ToString());
+		}
+		else
+		{
+			CurrentNodeId = InAsset->StartNodeId;
+			UE_LOG(LogTemp, Warning,
+				TEXT("DialogueSession::Start: entry point '%s' not found in asset '%s'; falling back to StartNodeId '%s'"),
+				*InEntryPointId.ToString(),
+				*InAsset->GetName(),
+				*CurrentNodeId.ToString());
+		}
 	}
 	else
 	{
 		CurrentNodeId = InAsset->StartNodeId;
+		UE_LOG(LogTemp, Log,
+			TEXT("DialogueSession::Start using default StartNodeId '%s'"),
+			*CurrentNodeId.ToString());
 	}
 
 	bIsRunning = true;
@@ -77,7 +96,26 @@ void UDialogueSession::Advance(int32 OutputIndex)
 		End();
 		return;
 	}
-	GoToNode(Node->Outputs[OutputIndex].NextNodeId);
+
+	const FDialogueOutput& Out = Node->Outputs[OutputIndex];
+
+	// If this choice leads to End, fire events and set "next start" if wired
+	if (Out.NextNodeId.IsNone())
+	{
+		for (const FName& EventName : Out.EndEvents)
+		{
+			if (!EventName.IsNone()) OnDialogueEvent.Broadcast(EventName);
+		}
+		NextEntryPointIdForNextStart = NAME_None;
+		if (!Out.ConnectedEndNodeId.IsNone() && Asset->EndToNextEntry.Contains(Out.ConnectedEndNodeId))
+		{
+			NextEntryPointIdForNextStart = Asset->EndToNextEntry.FindChecked(Out.ConnectedEndNodeId);
+		}
+		End();
+		return;
+	}
+
+	GoToNode(Out.NextNodeId);
 }
 
 void UDialogueSession::GoToNode(FName NodeId)
@@ -91,4 +129,5 @@ void UDialogueSession::End()
 {
 	bIsRunning = false;
 	OnDialogueEnded.Broadcast();
+	// NextEntryPointIdForNextStart stays set until read - component reads it in OnDialogueEnded handler
 }

@@ -10,7 +10,7 @@ UDialogueComponent::UDialogueComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UDialogueComponent::BeginDialogue(AActor* Interactor)
+void UDialogueComponent::BeginDialogue(AActor* Interactor, FName EntryPointOverride)
 {
 	UE_LOG(LogTemp, Log, TEXT("DialogueComponent::BeginDialogue called on %s, Interactor: %s"), *GetOwner()->GetName(), Interactor ? *Interactor->GetName() : TEXT("None"));
 	if (!DialogueAsset || !DialogueAsset->IsValid())
@@ -18,17 +18,38 @@ void UDialogueComponent::BeginDialogue(AActor* Interactor)
 		UE_LOG(LogTemp, Warning, TEXT("DialogueComponent on %s has no valid DialogueAsset assigned"), *GetOwner()->GetName());
 		return;
 	}
-	EndDialogue(); // tanquem anteriors diàlegs si n'hi ha per a no repetir
+	EndDialogue();
 
-	ActiveSession = NewObject<UDialogueSession>(this); // Creem un de nou
-	//ActiveSession->Start(DialogueAsset); Iniciarem el dialeg desde un blueprint
-	UE_LOG(LogTemp, Log, TEXT("Dialogue session started with asset: %s"), *DialogueAsset->GetName());
+	EntryPointId = NAME_None; 
+
+	if (EntryPointOverride.IsNone())
+	{
+		// No override: use graph logic (pending from last exit, else default)
+		EntryPointId = PendingNextEntryPointId;
+	}
+	else if (EntryPointOverride == FName(TEXT("Default")) || EntryPointOverride == FName(TEXT("DEFAULT")) || EntryPointOverride == FName(TEXT("DEAFULT")))
+	{
+		// Explicit "Default": force default start
+		EntryPointId = NAME_None;
+	}
+	else
+	{
+		// Override with specific entry point ID
+		EntryPointId = EntryPointOverride;
+	}
+
+	PendingNextEntryPointId = NAME_None; // Use once, then clear
+
+	ActiveSession = NewObject<UDialogueSession>(this);
+	//ActiveSession->Start(DialogueAsset, EntryPointId);
+	UE_LOG(LogTemp, Log, TEXT("Dialogue session started with asset: %s, entry: %s"), *DialogueAsset->GetName(), *EntryPointId.ToString());
 }
 
 void UDialogueComponent::EndDialogue()
 {
 	if (ActiveSession)
 	{
+		PendingNextEntryPointId = ActiveSession->GetNextEntryPointId();
 		ActiveSession->End();
 		ActiveSession = nullptr;
 	}

@@ -24,6 +24,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TMap<FName, FName> EntryPoints;
 
+	/** When you exit via End node X, next time start at Entry Point Y. Key = EndNodeId; Value = EntryPointId. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TMap<FName, FName> EndToNextEntry;
+
 	void CompileFromGraph();
 	virtual void PreSave(FObjectPreSaveContext SaveContext) override;
 	

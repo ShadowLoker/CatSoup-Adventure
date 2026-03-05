@@ -22,6 +22,14 @@ struct FDialogueOutput
 	/** True when this output is wired in the graph. Unwired outputs are disabled and not shown at runtime. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bEnabled = true;
+
+	/** Events to fire when this choice leads to an End node. Compiled from the connected End node's EventNames. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TArray<FName> EndEvents;
+
+	/** When connected to an End node, its EndNodeId. Used to look up "next start" entry point. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FName ConnectedEndNodeId;
 };
 
 	/** The line of text to display. */

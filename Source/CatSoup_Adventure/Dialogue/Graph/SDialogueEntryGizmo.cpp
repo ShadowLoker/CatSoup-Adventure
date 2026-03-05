@@ -28,7 +28,7 @@ void SDialogueEntryGizmo::UpdateGraphNode()
 
 	TWeakObjectPtr<UDialogueEntryGizmo> WeakGizmo(Gizmo);
 
-	// Match Start node layout: label on left, output pin on right (easy to drag wire from)
+	// Layout: [Input pin] [ID label] [Output pin]. Input = "next start" from End node.
 	this->GetOrAddSlot(ENodeZone::Center)
 	[
 		SNew(SBorder)
@@ -39,6 +39,14 @@ void SDialogueEntryGizmo::UpdateGraphNode()
 			SNew(SHorizontalBox)
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
+			.MinWidth(28.f)
+			.VAlign(VAlign_Center)
+			[
+				SAssignNew(LeftNodeBox, SVerticalBox)
+			]
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.Padding(8, 0)
 			.VAlign(VAlign_Center)
 			[
 				SNew(SEditableTextBox)
@@ -52,8 +60,13 @@ void SDialogueEntryGizmo::UpdateGraphNode()
 				{
 					if (UDialogueEntryGizmo* G = WeakGizmo.Get())
 					{
+						FString S = NewText.ToString().TrimStartAndEnd();
+						if (S.Equals(TEXT("Default"), ESearchCase::IgnoreCase))
+						{
+							return; // Reserved: cannot name entry point "Default"
+						}
 						G->Modify();
-						G->EntryPointId = FName(*NewText.ToString());
+						G->EntryPointId = FName(*S);
 						if (UEdGraph* Graph = G->GetGraph()) Graph->NotifyGraphChanged();
 					}
 				}))
@@ -85,5 +98,42 @@ void SDialogueEntryGizmo::CreatePinWidgets()
 			NewPin->SetShowLabel(false);
 			AddPin(NewPin.ToSharedRef());
 		}
+	}
+}
+
+void SDialogueEntryGizmo::AddPin(const TSharedRef<SGraphPin>& PinToAdd)
+{
+	PinToAdd->SetOwner(SharedThis(this));
+
+	const UEdGraphPin* PinObj = PinToAdd->GetPinObj();
+	if (!PinObj) return;
+
+	if (PinToAdd->GetDirection() == EGPD_Input)
+	{
+		if (LeftNodeBox.IsValid())
+		{
+			LeftNodeBox->AddSlot()
+				.AutoHeight()
+				.HAlign(HAlign_Left)
+				.VAlign(VAlign_Center)
+				[
+					PinToAdd
+				];
+		}
+		InputPins.Add(PinToAdd);
+	}
+	else
+	{
+		if (RightNodeBox.IsValid())
+		{
+			RightNodeBox->AddSlot()
+				.AutoHeight()
+				.HAlign(HAlign_Right)
+				.VAlign(VAlign_Center)
+				[
+					PinToAdd
+				];
+		}
+		OutputPins.Add(PinToAdd);
 	}
 }

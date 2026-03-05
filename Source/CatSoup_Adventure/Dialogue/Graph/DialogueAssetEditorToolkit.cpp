@@ -13,6 +13,7 @@
 #include "ScopedTransaction.h"
 #include "Dialogue/Schema/DialogueGraphSchema.h"
 #include "Dialogue/Graph/DialogueEndGizmo.h"
+#include "Dialogue/Graph/DialogueEntryGizmo.h"
 
 #include "IDetailsView.h"
 #include "Framework/Commands/GenericCommands.h"
@@ -100,6 +101,14 @@ void FDialogueAssetEditorToolkit::Initialize(UDialogueAsset* InDialogueAsset)
         if (UDialogueGraphNode* DNode = Cast<UDialogueGraphNode>(Node))
         {
             DNode->ReconstructNode();
+        }
+        else if (UDialogueEndGizmo* EndGizmo = Cast<UDialogueEndGizmo>(Node))
+        {
+            EndGizmo->ReconstructNode();
+        }
+        else if (UDialogueEntryGizmo* EntryGizmo = Cast<UDialogueEntryGizmo>(Node))
+        {
+            EntryGizmo->ReconstructNode();
         }
     }
     DialogueGraph->NotifyGraphChanged();

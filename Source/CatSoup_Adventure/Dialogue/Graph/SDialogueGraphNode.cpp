@@ -119,6 +119,50 @@ void SDialogueGraphNode::UpdateGraphNode()
                         }))
                     ]
                 ]
+                + SVerticalBox::Slot()
+                .AutoHeight()
+                .Padding(0, 8, 0, 0)
+                [
+                    SNew(SVerticalBox)
+                    + SVerticalBox::Slot()
+                    .AutoHeight()
+                    .Padding(0, 0, 0, 4)
+                    [
+                        SNew(STextBlock)
+                        .Text(FText::FromString(TEXT("EVENTS")))
+                        .Font(FAppStyle::GetFontStyle("SmallFont"))
+                    ]
+                    + SVerticalBox::Slot()
+                    .AutoHeight()
+                    [
+                        SNew(SVerticalBox)
+                        .Visibility(DNode ? EVisibility::Visible : EVisibility::Collapsed)
+                        + SVerticalBox::Slot()
+                        .AutoHeight()
+                        [
+                            SAssignNew(EventsListBox, SVerticalBox)
+                        ]
+                        + SVerticalBox::Slot()
+                        .AutoHeight()
+                        .Padding(0, 4, 0, 0)
+                        [
+                            SNew(SButton)
+                            .Text(FText::FromString(TEXT("+ Add Event")))
+                            .OnClicked_Lambda([this]()
+                            {
+                                if (DNode)
+                                {
+                                    DNode->Modify();
+                                    DNode->NodeData.EventNames.Add(NAME_None);
+                                    if (UEdGraph* G = DNode->GetGraph()) G->NotifyGraphChanged();
+                                    UpdateGraphNode();
+                                }
+                                return FReply::Handled();
+                            })
+                            .Visibility(DNode ? EVisibility::Visible : EVisibility::Collapsed)
+                        ]
+                    ]
+                ]
             ]
 
             // RIGHT: Choices - each row is [TextBox] [Pin], aligned
@@ -154,6 +198,67 @@ void SDialogueGraphNode::UpdateGraphNode()
     ];
 
     CreatePinWidgets();
+    PopulateEventsList();
+}
+
+void SDialogueGraphNode::PopulateEventsList()
+{
+    if (!EventsListBox.IsValid() || !DNode) return;
+
+    EventsListBox->ClearChildren();
+    TWeakObjectPtr<UDialogueGraphNode> WeakNode(DNode);
+
+    for (int32 i = 0; i < DNode->NodeData.EventNames.Num(); ++i)
+    {
+        const int32 Index = i;
+        EventsListBox->AddSlot()
+            .AutoHeight()
+            .Padding(0, 2)
+            [
+                SNew(SHorizontalBox)
+                + SHorizontalBox::Slot()
+                .FillWidth(1.f)
+                .VAlign(VAlign_Center)
+                [
+                    SNew(SEditableTextBox)
+                    .MinDesiredWidth(80.f)
+                    .Text(TAttribute<FText>::CreateLambda([WeakNode, Index]()
+                    {
+                        UDialogueGraphNode* Node = WeakNode.Get();
+                        if (!Node || !Node->NodeData.EventNames.IsValidIndex(Index)) return FText::GetEmpty();
+                        return FText::FromName(Node->NodeData.EventNames[Index]);
+                    }))
+                    .OnTextCommitted(FOnTextCommitted::CreateLambda([WeakNode, Index](const FText& NewText, ETextCommit::Type)
+                    {
+                        UDialogueGraphNode* Node = WeakNode.Get();
+                        if (!Node || !Node->NodeData.EventNames.IsValidIndex(Index)) return;
+                        Node->Modify();
+                        Node->NodeData.EventNames[Index] = FName(*NewText.ToString());
+                        if (UEdGraph* G = Node->GetGraph()) G->NotifyGraphChanged();
+                    }))
+                    .HintText(FText::FromString(TEXT("Event name")))
+                ]
+                + SHorizontalBox::Slot()
+                .AutoWidth()
+                .Padding(4, 0, 0, 0)
+                .VAlign(VAlign_Center)
+                [
+                    SNew(SButton)
+                    .Text(FText::FromString(TEXT("×")))
+                    .OnClicked_Lambda([this, Index]()
+                    {
+                        if (DNode && DNode->NodeData.EventNames.IsValidIndex(Index))
+                        {
+                            DNode->Modify();
+                            DNode->NodeData.EventNames.RemoveAt(Index);
+                            if (UEdGraph* G = DNode->GetGraph()) G->NotifyGraphChanged();
+                            UpdateGraphNode();
+                        }
+                        return FReply::Handled();
+                    })
+                ]
+            ];
+    }
 }
 
 void SDialogueGraphNode::CreatePinWidgets()

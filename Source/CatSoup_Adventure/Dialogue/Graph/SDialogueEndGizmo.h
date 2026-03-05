@@ -14,4 +14,9 @@ public:
 
 	virtual void UpdateGraphNode() override;
 	virtual void CreatePinWidgets() override;
+	virtual void AddPin(const TSharedRef<SGraphPin>& PinToAdd) override;
+
+private:
+	TSharedPtr<SVerticalBox> EventsListBox;
+	void PopulateEventsList();
 };

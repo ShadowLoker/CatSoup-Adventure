@@ -90,6 +90,35 @@ void UDialogueAsset::CompileFromGraph()
         }
     }
 
+    // --- 1c) Build EndToNextEntry: when you exit via End X, next time start at Entry Y ---
+    EndToNextEntry.Empty();
+    for (UEdGraphNode* Node : EditorGraph->Nodes)
+    {
+        if (UDialogueEndGizmo* EndGizmo = Cast<UDialogueEndGizmo>(Node))
+        {
+            // Use EndNodeId if set; otherwise fallback to NodeGuid so "next start" still works
+            FName EndKey = EndGizmo->EndNodeId.IsNone()
+                ? FName(*EndGizmo->NodeGuid.ToString())
+                : EndGizmo->EndNodeId;
+
+            for (UEdGraphPin* Pin : EndGizmo->Pins)
+            {
+                if (Pin && Pin->Direction == EGPD_Output && Pin->PinName == FName(TEXT("NextStart")) &&
+                    Pin->LinkedTo.Num() > 0 && Pin->LinkedTo[0])
+                {
+                    if (UDialogueEntryGizmo* EntryGizmo = Cast<UDialogueEntryGizmo>(Pin->LinkedTo[0]->GetOwningNode()))
+                    {
+                        if (!EntryGizmo->EntryPointId.IsNone())
+                        {
+                            EndToNextEntry.Add(EndKey, EntryGizmo->EntryPointId);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     // --- 2) Build runtime Nodes map from all Dialogue nodes ---
     for (UEdGraphNode* Node : EditorGraph->Nodes)
     {
@@ -107,11 +136,13 @@ void UDialogueAsset::CompileFromGraph()
 
         FDialogueNode CompiledData = DNode->NodeData;
 
-        // Clear all next links and enabled state first (so stale data doesn't survive)
+        // Clear all next links, enabled state, end events, and connected end id
         for (auto& Out : CompiledData.Outputs)
         {
             Out.NextNodeId = NAME_None;
             Out.bEnabled = false;
+            Out.EndEvents.Empty();
+            Out.ConnectedEndNodeId = NAME_None;
         }
 
         // Read pin links and fill NextNodeId + bEnabled per output index
@@ -140,6 +171,8 @@ void UDialogueAsset::CompileFromGraph()
 
             FName NextId = NAME_None;
             bool bWired = false;
+            TArray<FName> EndEvts;
+            FName ConnectedEndId = NAME_None;
 
             if (Pin->LinkedTo.Num() > 0 && Pin->LinkedTo[0])
             {
@@ -149,15 +182,20 @@ void UDialogueAsset::CompileFromGraph()
                     NextId = DTarget->NodeId;
                     bWired = true;
                 }
-                else if (Cast<UDialogueEndGizmo>(Target))
+                else if (UDialogueEndGizmo* EndGizmo = Cast<UDialogueEndGizmo>(Target))
                 {
-                    // Connected to End node = end of dialogue (NextId stays NAME_None)
                     bWired = true;
+                    EndEvts = EndGizmo->EventNames;
+                    ConnectedEndId = EndGizmo->EndNodeId.IsNone()
+                        ? FName(*EndGizmo->NodeGuid.ToString())
+                        : EndGizmo->EndNodeId;
                 }
             }
 
             CompiledData.Outputs[OutIndex].NextNodeId = NextId;
             CompiledData.Outputs[OutIndex].bEnabled = bWired;
+            CompiledData.Outputs[OutIndex].EndEvents = EndEvts;
+            CompiledData.Outputs[OutIndex].ConnectedEndNodeId = ConnectedEndId;
         }
 
         Nodes.Add(DNode->NodeId, CompiledData);

@@ -43,6 +43,10 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Dialogue")
 	FName GetCurrentNodeId() const { return CurrentNodeId; }
+
+	/** When dialogue ended via an End node with "NextStart" wired to an Entry Point, this is that EntryPointId. Read after OnDialogueEnded to use next time. */
+	UFUNCTION(BlueprintPure, Category = "Dialogue")
+	FName GetNextEntryPointId() const { return NextEntryPointIdForNextStart; }
 	
 private:
 	UPROPERTY()
@@ -50,6 +54,7 @@ private:
 
 	FName CurrentNodeId;
 	bool bIsRunning = false;
+	FName NextEntryPointIdForNextStart;
 
 	void ProcessCurrentNode();
 	void GoToNode(FName NodeId);

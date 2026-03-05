@@ -134,6 +134,7 @@ namespace DialogueSchemaActions
             if (!EndNode) return nullptr;
 
             EndNode->Modify();
+            EndNode->EndNodeId = FName(TEXT("Leave"));
             EndNode->NodePosX = (int32)Location.X;
             EndNode->NodePosY = (int32)Location.Y;
 
@@ -275,13 +276,18 @@ const FPinConnectionResponse UDialogueGraphSchema::CanCreateConnection(
     }
     else if (Cast<UDialogueGraphNode>(OutOwner))
     {
-        // Dialogue output can connect to Dialogue input or End input
         if (!Cast<UDialogueGraphNode>(InOwner) && !Cast<UDialogueEndGizmo>(InOwner))
             return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Dialogue output must connect to a Dialogue node or End node"));
     }
+    else if (Cast<UDialogueEndGizmo>(OutOwner))
+    {
+        // End "NextStart" output -> Entry Point "NextStart" input: "when you exit via this End, next time start here"
+        if (!Cast<UDialogueEntryGizmo>(InOwner))
+            return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("End output must connect to an Entry Point (sets \"next start here\")"));
+    }
     else
     {
-        return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Output must be from Start or Dialogue node"));
+        return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Output must be from Start, Dialogue, or End node"));
     }
 
     return FPinConnectionResponse(CONNECT_RESPONSE_MAKE, TEXT(""));
