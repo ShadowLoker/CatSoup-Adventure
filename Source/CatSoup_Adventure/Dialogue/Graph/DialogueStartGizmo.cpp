@@ -6,7 +6,7 @@ void UDialogueStartGizmo::AllocateDefaultPins()
 	UEdGraphPin* OutPin = CreatePin(EGPD_Output, DialogueGraphPins::Flow, FName(TEXT("Out")));
 	if (OutPin)
 	{
-		OutPin->PinFriendlyName = FText::FromString(TEXT("Start"));
+		OutPin->PinFriendlyName = FText::FromString(TEXT(""));
 	}
 }
 

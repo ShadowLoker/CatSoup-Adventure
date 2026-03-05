@@ -1,6 +1,7 @@
 #include "SDialogueStartGizmo.h"
 #include "Dialogue/Graph/DialogueStartGizmo.h"
 #include "EdGraph/EdGraphPin.h"
+#include "SGraphPin.h"
 #include "Styling/AppStyle.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Layout/SBorder.h"
@@ -60,6 +61,7 @@ void SDialogueStartGizmo::CreatePinWidgets()
 		TSharedPtr<SGraphPin> NewPin = CreatePinWidget(CurPin);
 		if (NewPin.IsValid())
 		{
+			NewPin->SetShowLabel(false);
 			AddPin(NewPin.ToSharedRef());
 		}
 	}

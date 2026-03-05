@@ -2,6 +2,7 @@
 
 #include "Dialogue/Graph/DialogueGraphNode.h"
 #include "EdGraph/EdGraphPin.h"
+#include "SGraphPin.h"
 #include "Styling/AppStyle.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Input/SEditableTextBox.h"
@@ -119,9 +120,10 @@ void SDialogueGraphNode::UpdateGraphNode()
                 ]
             ]
 
-            // RIGHT: Choices label + output labels (editable) + pins + Add Output button below
+            // RIGHT: Choices - each row is [TextBox] [Pin], aligned
             + SHorizontalBox::Slot()
             .AutoWidth()
+            .MinWidth(180.f)
             [
                 SNew(SVerticalBox)
                 + SVerticalBox::Slot()
@@ -135,29 +137,7 @@ void SDialogueGraphNode::UpdateGraphNode()
                 + SVerticalBox::Slot()
                 .AutoHeight()
                 [
-                    SNew(SHorizontalBox)
-                    // Pins first (left) so they're prominent and easy to drag from
-                    + SHorizontalBox::Slot()
-                    .AutoWidth()
-                    .MinWidth(28.f)
-                    [
-                        SNew(SVerticalBox)
-                        + SVerticalBox::Slot()
-                        .AutoHeight()
-                        [
-                            SAssignNew(RightNodeBox, SVerticalBox)
-                        ]
-                    ]
-                    + SHorizontalBox::Slot()
-                    .AutoWidth()
-                    .Padding(6, 0, 0, 0)
-                    [
-                        SNew(SBox)
-                        .Visibility(DNode ? EVisibility::Visible : EVisibility::Collapsed)
-                        [
-                            SAssignNew(OutputLabelsBox, SVerticalBox)
-                        ]
-                    ]
+                    SAssignNew(RightNodeBox, SVerticalBox)
                 ]
                 + SVerticalBox::Slot()
                 .AutoHeight()
@@ -172,40 +152,6 @@ void SDialogueGraphNode::UpdateGraphNode()
         ]
     ];
 
-    // Populate output labels (editable) for Dialogue nodes
-    // Use TWeakObjectPtr to avoid capturing 'this' - when the graph refreshes after ReconstructNode,
-    // the Slate widget may be destroyed while callbacks are still pending, causing EXCEPTION_ACCESS_VIOLATION.
-    if (OutputLabelsBox.IsValid() && DNode)
-    {
-        TWeakObjectPtr<UDialogueGraphNode> WeakNode(DNode);
-        for (int32 i = 0; i < DNode->NodeData.Outputs.Num(); i++)
-        {
-            const int32 Index = i;
-            OutputLabelsBox->AddSlot()
-                .AutoHeight()
-                .Padding(0, 2.f)
-                [
-                    SNew(SEditableTextBox)
-                    .MinDesiredWidth(60.f)
-                    .Text(TAttribute<FText>::CreateLambda([WeakNode, Index]()
-                    {
-                        UDialogueGraphNode* Node = WeakNode.Get();
-                        if (!Node || !Node->NodeData.Outputs.IsValidIndex(Index)) return FText::GetEmpty();
-                        return Node->NodeData.Outputs[Index].Text;
-                    }))
-                    .OnTextCommitted(FOnTextCommitted::CreateLambda([WeakNode, Index](const FText& NewText, ETextCommit::Type)
-                    {
-                        UDialogueGraphNode* Node = WeakNode.Get();
-                        if (!Node || !Node->NodeData.Outputs.IsValidIndex(Index)) return;
-                        Node->Modify();
-                        Node->NodeData.Outputs[Index].Text = NewText;
-                        Node->ReconstructNode();
-                        if (UEdGraph* G = Node->GetGraph()) G->NotifyGraphChanged();
-                    }))
-                ];
-        }
-    }
-
     CreatePinWidgets();
 }
 
@@ -218,8 +164,79 @@ void SDialogueGraphNode::CreatePinWidgets()
         TSharedPtr<SGraphPin> NewPin = CreatePinWidget(CurPin);
         if (!NewPin.IsValid()) continue;
 
+        NewPin->SetShowLabel(false);
         AddPin(NewPin.ToSharedRef());
     }
+}
+
+void SDialogueGraphNode::AddPin(const TSharedRef<SGraphPin>& PinToAdd)
+{
+    PinToAdd->SetOwner(SharedThis(this));
+
+    const UEdGraphPin* PinObj = PinToAdd->GetPinObj();
+    if (!PinObj) return;
+
+    if (PinToAdd->GetDirection() == EGPD_Input)
+    {
+        LeftNodeBox->AddSlot()
+            .AutoHeight()
+            .HAlign(HAlign_Left)
+            .VAlign(VAlign_Center)
+            [
+                PinToAdd
+            ];
+        InputPins.Add(PinToAdd);
+        return;
+    }
+
+    // Output pin: row [TextBox] [Pin] - one editable field, pin aligned right
+    if (!RightNodeBox.IsValid() || !DNode) return;
+
+    int32 OutIndex = INDEX_NONE;
+    FString PinStr = PinObj->PinName.ToString();
+    if (PinStr.StartsWith(TEXT("Out_"))) OutIndex = FCString::Atoi(*PinStr.Mid(4));
+    if (OutIndex < 0 || !DNode->NodeData.Outputs.IsValidIndex(OutIndex)) return;
+
+    const int32 Index = OutIndex;
+    TWeakObjectPtr<UDialogueGraphNode> WeakNode(DNode);
+
+    RightNodeBox->AddSlot()
+        .AutoHeight()
+        .Padding(0, 2.f)
+        [
+            SNew(SHorizontalBox)
+            + SHorizontalBox::Slot()
+            .FillWidth(1.f)
+            .VAlign(VAlign_Center)
+            .Padding(0, 0, 8, 0)
+            [
+                SNew(SEditableTextBox)
+                .MinDesiredWidth(80.f)
+                .Text(TAttribute<FText>::CreateLambda([WeakNode, Index]()
+                {
+                    UDialogueGraphNode* Node = WeakNode.Get();
+                    if (!Node || !Node->NodeData.Outputs.IsValidIndex(Index)) return FText::GetEmpty();
+                    return Node->NodeData.Outputs[Index].Text;
+                }))
+                .OnTextCommitted(FOnTextCommitted::CreateLambda([WeakNode, Index](const FText& NewText, ETextCommit::Type)
+                {
+                    UDialogueGraphNode* Node = WeakNode.Get();
+                    if (!Node || !Node->NodeData.Outputs.IsValidIndex(Index)) return;
+                    Node->Modify();
+                    Node->NodeData.Outputs[Index].Text = NewText;
+                    Node->ReconstructNode();
+                    if (UEdGraph* G = Node->GetGraph()) G->NotifyGraphChanged();
+                }))
+            ]
+            + SHorizontalBox::Slot()
+            .AutoWidth()
+            .HAlign(HAlign_Right)
+            .VAlign(VAlign_Center)
+            [
+                PinToAdd
+            ]
+        ];
+    OutputPins.Add(PinToAdd);
 }
 
 FReply SDialogueGraphNode::OnAddOutputClicked()

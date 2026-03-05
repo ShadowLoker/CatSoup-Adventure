@@ -176,7 +176,7 @@ public:
 		}
 
 		UEdGraphPin* InPin = CreatePin(EGPD_Input, DialogueGraphPins::Flow, FName(TEXT("In")));
-		if (InPin) InPin->PinFriendlyName = FText::FromString(TEXT("From"));
+		if (InPin) InPin->PinFriendlyName = FText::FromString(TEXT(""));
 
 		for (int32 i = 0; i < NodeData.Outputs.Num(); i++)
 		{
@@ -185,9 +185,8 @@ public:
 
 			if (OutPin)
 			{
-				OutPin->PinFriendlyName = NodeData.Outputs[i].Text.IsEmpty()
-					? FText::FromString(TEXT("End"))
-					: NodeData.Outputs[i].Text;
+				// Label shown in the text box; pin is minimal (no duplicate label)
+				OutPin->PinFriendlyName = FText::FromString(TEXT(""));
 			}
 		}
 	}
