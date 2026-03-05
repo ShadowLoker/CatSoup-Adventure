@@ -4,6 +4,7 @@
 #include "Dialogue/Graph/DialogueGraphNode.h"
 #include "Dialogue/Graph/DialogueStartGizmo.h"
 #include "Dialogue/Graph/DialogueEndGizmo.h"
+#include "Dialogue/Graph/DialogueEntryGizmo.h"
 #include "UObject/ObjectSaveContext.h"
 
 static bool TryParseOutIndex(const FName& PinName, int32& OutIndex)
@@ -65,6 +66,28 @@ void UDialogueAsset::CompileFromGraph()
     if (StartNodeId.IsNone())
     {
         UE_LOG(LogTemp, Warning, TEXT("CompileFromGraph: Start gizmo not connected to a dialogue node"));
+    }
+
+    // --- 1b) Build EntryPoints from all Entry gizmos ---
+    EntryPoints.Empty();
+    for (UEdGraphNode* Node : EditorGraph->Nodes)
+    {
+        if (UDialogueEntryGizmo* EntryGizmo = Cast<UDialogueEntryGizmo>(Node))
+        {
+            if (EntryGizmo->EntryPointId.IsNone()) continue;
+
+            for (UEdGraphPin* Pin : EntryGizmo->Pins)
+            {
+                if (Pin && Pin->Direction == EGPD_Output && Pin->LinkedTo.Num() > 0 && Pin->LinkedTo[0])
+                {
+                    if (UDialogueGraphNode* Target = Cast<UDialogueGraphNode>(Pin->LinkedTo[0]->GetOwningNode()))
+                    {
+                        EntryPoints.Add(EntryGizmo->EntryPointId, Target->NodeId);
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     // --- 2) Build runtime Nodes map from all Dialogue nodes ---

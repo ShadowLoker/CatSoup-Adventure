@@ -2,6 +2,7 @@
 #include "Dialogue/Graph/DialogueGraphNode.h"
 #include "Dialogue/Graph/DialogueStartGizmo.h"
 #include "Dialogue/Graph/DialogueEndGizmo.h"
+#include "Dialogue/Graph/DialogueEntryGizmo.h"
 #include "Dialogue/Graph/DialogueGraphPins.h"
 #include "Framework/Commands/UIAction.h"
 #include "GraphEditor.h"
@@ -80,6 +81,15 @@ namespace DialogueSchemaActions
             NewNode->NodePosX = (int32)Location.X;
             NewNode->NodePosY = (int32)Location.Y;
 
+            // If created from a wire, inherit SPEAKER from the previous node
+            if (FromPin)
+            {
+                if (UDialogueGraphNode* PrevNode = Cast<UDialogueGraphNode>(FromPin->GetOwningNode()))
+                {
+                    NewNode->NodeData.SpeakerId = PrevNode->NodeData.SpeakerId;
+                }
+            }
+
             ParentGraph->AddNode(NewNode, /*bFromUI=*/true, bSelectNewNode);
             NewNode->AllocateDefaultPins();
 
@@ -149,6 +159,51 @@ namespace DialogueSchemaActions
             return EndNode;
         }
     };
+
+    struct FDialogueAddEntryPointAction : public FEdGraphSchemaAction
+    {
+        FDialogueAddEntryPointAction(
+            const FText& InCategory,
+            const FText& InMenuDesc,
+            const FText& InToolTip,
+            int32 InGrouping)
+            : FEdGraphSchemaAction(InCategory, InMenuDesc, InToolTip, InGrouping) {}
+
+        virtual UEdGraphNode* PerformAction(
+            UEdGraph* ParentGraph,
+            UEdGraphPin* FromPin,
+            const FVector2D Location,
+            bool bSelectNewNode) override
+        {
+            if (!ParentGraph) return nullptr;
+
+            const FScopedTransaction Transaction(
+                NSLOCTEXT("DialogueGraph", "AddEntryPoint", "Add Entry Point"));
+
+            ParentGraph->Modify();
+
+            UDialogueEntryGizmo* EntryNode = NewObject<UDialogueEntryGizmo>(
+                ParentGraph,
+                UDialogueEntryGizmo::StaticClass(),
+                NAME_None,
+                RF_Transactional);
+
+            if (!EntryNode) return nullptr;
+
+            EntryNode->Modify();
+            EntryNode->EntryPointId = FName(TEXT("Return"));
+            EntryNode->NodePosX = (int32)Location.X;
+            EntryNode->NodePosY = (int32)Location.Y;
+
+            ParentGraph->AddNode(EntryNode, true, bSelectNewNode);
+            EntryNode->AllocateDefaultPins();
+
+            EntryNode->PostEditChange();
+            ParentGraph->NotifyGraphChanged();
+
+            return EntryNode;
+        }
+    };
 }
 
 static bool TryParseOutIndex(const FName& PinName, int32& OutIndex)
@@ -176,6 +231,12 @@ void UDialogueGraphSchema::GetGraphContextActions(FGraphContextMenuBuilder& Cont
         LOCTEXT("AddEndNode", "Add End Node"),
         LOCTEXT("AddEndNodeTooltip", "Creates an End node. Connect choice pins here to mark where the dialogue ends."),
         1));
+
+    ContextMenuBuilder.AddAction(MakeShared<DialogueSchemaActions::FDialogueAddEntryPointAction>(
+        Category,
+        LOCTEXT("AddEntryPoint", "Add Entry Point"),
+        LOCTEXT("AddEntryPointTooltip", "Creates an alternate entry point. Set its ID (e.g. Return, Continue) and connect to a dialogue node. Use Start(Asset, EntryPointId) to begin from this node."),
+        2));
 }
 
 const FPinConnectionResponse UDialogueGraphSchema::CanCreateConnection(
@@ -204,9 +265,13 @@ const FPinConnectionResponse UDialogueGraphSchema::CanCreateConnection(
 
     if (Cast<UDialogueStartGizmo>(OutOwner))
     {
-        // Start output can only connect to Dialogue input
         if (!Cast<UDialogueGraphNode>(InOwner))
             return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Start must connect to a Dialogue node"));
+    }
+    else if (Cast<UDialogueEntryGizmo>(OutOwner))
+    {
+        if (!Cast<UDialogueGraphNode>(InOwner))
+            return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Entry Point must connect to a Dialogue node"));
     }
     else if (Cast<UDialogueGraphNode>(OutOwner))
     {

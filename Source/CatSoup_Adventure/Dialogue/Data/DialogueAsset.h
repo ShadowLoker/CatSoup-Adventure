@@ -9,17 +9,20 @@
 UCLASS(BlueprintType)
 class CATSOUP_ADVENTURE_API UDialogueAsset : public UPrimaryDataAsset
 {
-	/** Map key of the node to start from (e.g. "Start"). */
 	GENERATED_BODY()
 
-	/** All nodes. Key = node id; use this in Outputs' "Next Node" to link nodes. */
 public:
+	/** Default start node (from Start gizmo). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	/** Returns true if StartNodeId exists in Nodes. */
 	FName StartNodeId;
 
+	/** All nodes. Key = node id; use this in Outputs' "Next Node" to link nodes. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TMap<FName, FDialogueNode> Nodes;
+
+	/** Alternate entry points. Key = EntryPointId (e.g. "Return", "Continue"); Value = node id to jump to. Use Start(Asset, EntryPointId). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TMap<FName, FName> EntryPoints;
 
 	void CompileFromGraph();
 	virtual void PreSave(FObjectPreSaveContext SaveContext) override;

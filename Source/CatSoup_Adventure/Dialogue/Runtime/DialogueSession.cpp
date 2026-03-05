@@ -5,13 +5,23 @@
 #include "Dialogue/Runtime/DialogueSession.h"
 #include "Dialogue/Data/DialogueAsset.h"
 
-void UDialogueSession::Start(UDialogueAsset* InAsset)
+void UDialogueSession::Start(UDialogueAsset* InAsset, FName InEntryPointId)
 {
 	if (!InAsset || !InAsset->IsValid()) return;
 	End();
 
 	Asset = InAsset;
-	CurrentNodeId = Asset->StartNodeId;
+
+	// Use entry point if provided and found; otherwise default start
+	if (!InEntryPointId.IsNone() && InAsset->EntryPoints.Contains(InEntryPointId))
+	{
+		CurrentNodeId = InAsset->EntryPoints.FindChecked(InEntryPointId);
+	}
+	else
+	{
+		CurrentNodeId = InAsset->StartNodeId;
+	}
+
 	bIsRunning = true;
 	ProcessCurrentNode();
 }

@@ -28,8 +28,9 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnDialogueEvent OnDialogueEvent;
 
-	UFUNCTION(BlueprintCallable, Category = "Dialogue")
-	void Start(UDialogueAsset* Asset);
+	/** Start dialogue. Use optional EntryPointId (e.g. "Return", "Continue") to begin from an alternate entry point; pass NAME_None for default start. */
+	UFUNCTION(BlueprintCallable, Category = "Dialogue", meta = (DisplayName = "Start"))
+	void Start(UDialogueAsset* Asset, FName EntryPointId = NAME_None);
 
 	UFUNCTION(BlueprintCallable, Category = "Dialogue", meta = (DisplayName = "Advance"))
 	void Advance(int32 OutputIndex = 0);
