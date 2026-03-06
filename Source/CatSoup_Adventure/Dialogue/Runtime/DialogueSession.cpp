@@ -4,6 +4,7 @@
 //
 #include "Dialogue/Runtime/DialogueSession.h"
 #include "Dialogue/Data/DialogueAsset.h"
+#include "Dialogue/Runtime/DialogueAction.h"
 
 void UDialogueSession::Start(UDialogueAsset* InAsset, FName InEntryPointId)
 {
@@ -47,13 +48,10 @@ void UDialogueSession::Start(UDialogueAsset* InAsset, FName InEntryPointId)
 
 void UDialogueSession::ProcessCurrentNode()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Processing node: %s"), *CurrentNodeId.ToString());
 	if (!Asset || !bIsRunning)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("No asset or session not running"));
 		return;
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Processing node: %s"), *Asset->GetName());
 
 	const FDialogueNode* Node = Asset->Nodes.Find(CurrentNodeId);
 	if (!Node)
@@ -63,10 +61,7 @@ void UDialogueSession::ProcessCurrentNode()
 		return;
 	}
 
-	for (const FName& EventName : Node->EventNames)
-	{
-		if (!EventName.IsNone()) OnDialogueEvent.Broadcast(EventName);
-	}
+	TriggerActions(Node->Actions);
 
 	FDialoguePayload Payload;
 	Payload.SpeakerId = Node->SpeakerId;
@@ -83,14 +78,13 @@ void UDialogueSession::ProcessCurrentNode()
 			}
 		}
 	}
-	UE_LOG(LogTemp, Warning, TEXT("OnLineStarted broadcast - Speaker: %s, Text: %s"), *Node->SpeakerId.ToString(), *Node->Text.ToString());
 	OnLineStarted.Broadcast(Payload);
 }
 
 void UDialogueSession::Advance(int32 OutputIndex)
 {
 	if (!Asset || !bIsRunning) return;
-	const FDialogueNode* Node = Asset->Nodes.Find(CurrentNodeId); 
+	const FDialogueNode* Node = Asset->Nodes.Find(CurrentNodeId);
 	if (!Node || !Node->Outputs.IsValidIndex(OutputIndex))
 	{
 		End();
@@ -99,13 +93,10 @@ void UDialogueSession::Advance(int32 OutputIndex)
 
 	const FDialogueOutput& Out = Node->Outputs[OutputIndex];
 
-	// If this choice leads to End, fire events and set "next start" if wired
+	// If this choice leads to End, fire actions and set "next start" if wired
 	if (Out.NextNodeId.IsNone())
 	{
-		for (const FName& EventName : Out.EndEvents)
-		{
-			if (!EventName.IsNone()) OnDialogueEvent.Broadcast(EventName);
-		}
+		TriggerActions(Out.EndActions);
 		NextEntryPointIdForNextStart = NAME_None;
 		if (!Out.ConnectedEndNodeId.IsNone() && Asset->EndToNextEntry.Contains(Out.ConnectedEndNodeId))
 		{
@@ -131,3 +122,27 @@ void UDialogueSession::End()
 	OnDialogueEnded.Broadcast();
 	// NextEntryPointIdForNextStart stays set until read - component reads it in OnDialogueEnded handler
 }
+
+void UDialogueSession::TriggerActions(const TArray<TSubclassOf<UDialogueAction>>& Actions)
+{
+	for (TSubclassOf<UDialogueAction> ActionClass : Actions)
+	{
+		if (!ActionClass)
+		{
+			continue;
+		}
+
+		UDialogueAction* Action = NewObject<UDialogueAction>(this, ActionClass);
+		if (!Action)
+		{
+			continue;
+		}
+
+		Action->Execute(this);
+		OnActionTriggered.Broadcast(Action);
+
+		// Backward compatibility only.
+		OnDialogueEvent.Broadcast(ActionClass->GetFName());
+	}
+}
+

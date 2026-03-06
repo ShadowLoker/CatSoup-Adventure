@@ -5,6 +5,7 @@
 #include "Dialogue/Graph/DialogueStartGizmo.h"
 #include "Dialogue/Graph/DialogueEndGizmo.h"
 #include "Dialogue/Graph/DialogueEntryGizmo.h"
+#include "Dialogue/Runtime/DialogueAction.h"
 #include "UObject/ObjectSaveContext.h"
 
 static bool TryParseOutIndex(const FName& PinName, int32& OutIndex)
@@ -141,7 +142,7 @@ void UDialogueAsset::CompileFromGraph()
         {
             Out.NextNodeId = NAME_None;
             Out.bEnabled = false;
-            Out.EndEvents.Empty();
+            Out.EndActions.Empty();
             Out.ConnectedEndNodeId = NAME_None;
         }
 
@@ -171,7 +172,7 @@ void UDialogueAsset::CompileFromGraph()
 
             FName NextId = NAME_None;
             bool bWired = false;
-            TArray<FName> EndEvts;
+            TArray<TSubclassOf<UDialogueAction>> EndActs;
             FName ConnectedEndId = NAME_None;
 
             if (Pin->LinkedTo.Num() > 0 && Pin->LinkedTo[0])
@@ -185,7 +186,7 @@ void UDialogueAsset::CompileFromGraph()
                 else if (UDialogueEndGizmo* EndGizmo = Cast<UDialogueEndGizmo>(Target))
                 {
                     bWired = true;
-                    EndEvts = EndGizmo->EventNames;
+                    EndActs = EndGizmo->Actions;
                     ConnectedEndId = EndGizmo->EndNodeId.IsNone()
                         ? FName(*EndGizmo->NodeGuid.ToString())
                         : EndGizmo->EndNodeId;
@@ -194,7 +195,7 @@ void UDialogueAsset::CompileFromGraph()
 
             CompiledData.Outputs[OutIndex].NextNodeId = NextId;
             CompiledData.Outputs[OutIndex].bEnabled = bWired;
-            CompiledData.Outputs[OutIndex].EndEvents = EndEvts;
+            CompiledData.Outputs[OutIndex].EndActions = EndActs;
             CompiledData.Outputs[OutIndex].ConnectedEndNodeId = ConnectedEndId;
         }
 
@@ -226,3 +227,4 @@ bool UDialogueAsset::IsValid() const
 {
 	return !StartNodeId.IsNone() && Nodes.Contains(StartNodeId);
 }
+

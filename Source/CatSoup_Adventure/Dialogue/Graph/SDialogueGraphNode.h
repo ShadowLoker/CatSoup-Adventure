@@ -18,8 +18,7 @@ public:
 
 private:
 	UDialogueGraphNode* DNode = nullptr;
-	TSharedPtr<SVerticalBox> EventsListBox;
 
 	FReply OnAddOutputClicked();
-	void PopulateEventsList();
 };
+

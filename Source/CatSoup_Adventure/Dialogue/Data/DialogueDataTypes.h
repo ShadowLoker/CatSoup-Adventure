@@ -6,6 +6,8 @@
 #include "CoreMinimal.h"
 #include "DialogueDataTypes.generated.h"
 
+class UDialogueAction;
+
 USTRUCT(BlueprintType)
 struct FDialogueOutput
 {
@@ -23,35 +25,35 @@ struct FDialogueOutput
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bEnabled = true;
 
-	/** Events to fire when this choice leads to an End node. Compiled from the connected End node's EventNames. */
+	/** Actions to run when this choice leads to an End node. Compiled from the connected End node's Actions. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TArray<FName> EndEvents;
+	TArray<TSubclassOf<UDialogueAction>> EndActions;
 
 	/** When connected to an End node, its EndNodeId. Used to look up "next start" entry point. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FName ConnectedEndNodeId;
 };
 
-	/** The line of text to display. */
+/** The line of text to display. */
 USTRUCT(BlueprintType)
 struct FDialogueNode
-	/** Outgoing connections. Count determines behavior: 0=end, 1=continue, 2+=choices. */
 {
 	GENERATED_BODY()
-	/** Event names to broadcast when this node is entered. Game systems can listen (quests, animations, etc.). */
+	/** Outgoing connections. Count determines behavior: 0=end, 1=continue, 2+=choices. */
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FName SpeakerId;
-/** Data passed to UI when a line is shown (1-output case). UI displays this, then calls Advance() when ready. */
 
+	/** Data passed to UI when a line is shown (1-output case). UI displays this, then calls Advance() when ready. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FText Text;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (DisplayName = "Outputs"))
 	TArray<FDialogueOutput> Outputs;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (DisplayName = "Events"))
-	TArray<FName> EventNames;
+	/** Actions to execute when this node is entered. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (DisplayName = "Actions"))
+	TArray<TSubclassOf<UDialogueAction>> Actions;
 };
 
 /** One choice option. Index is passed to Advance(Index) when clicked. */

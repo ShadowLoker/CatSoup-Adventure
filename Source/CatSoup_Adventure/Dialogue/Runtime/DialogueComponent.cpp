@@ -3,7 +3,7 @@
 #include "GameFramework/Actor.h"
 #include "Dialogue/Data/DialogueAsset.h"
 #include "Dialogue/Runtime/DialogueSession.h"
-#include "GameFramework/Actor.h"
+#include "Dialogue/Runtime/DialogueAction.h"
 
 UDialogueComponent::UDialogueComponent()
 {
@@ -20,7 +20,7 @@ void UDialogueComponent::BeginDialogue(AActor* Interactor, FName EntryPointOverr
 	}
 	EndDialogue();
 
-	EntryPointId = NAME_None; 
+	EntryPointId = NAME_None;
 
 	if (EntryPointOverride.IsNone())
 	{
@@ -41,7 +41,8 @@ void UDialogueComponent::BeginDialogue(AActor* Interactor, FName EntryPointOverr
 	PendingNextEntryPointId = NAME_None; // Use once, then clear
 
 	ActiveSession = NewObject<UDialogueSession>(this);
-	//ActiveSession->Start(DialogueAsset, EntryPointId);
+	ActiveSession->OnActionTriggered.AddDynamic(this, &UDialogueComponent::HandleSessionAction);
+	ActiveSession->Start(DialogueAsset, EntryPointId);
 	UE_LOG(LogTemp, Log, TEXT("Dialogue session started with asset: %s, entry: %s"), *DialogueAsset->GetName(), *EntryPointId.ToString());
 }
 
@@ -53,4 +54,9 @@ void UDialogueComponent::EndDialogue()
 		ActiveSession->End();
 		ActiveSession = nullptr;
 	}
+}
+
+void UDialogueComponent::HandleSessionAction(UDialogueAction* Action)
+{
+	OnActionTriggered.Broadcast(Action);
 }
