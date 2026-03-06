@@ -217,6 +217,20 @@ static bool TryParseOutIndex(const FName& PinName, int32& OutIndex)
     return OutIndex >= 0;
 }
 
+static bool IsDialogueFlowLikePin(const UEdGraphPin* Pin)
+{
+    if (!Pin)
+    {
+        return false;
+    }
+
+    const FName Category = Pin->PinType.PinCategory;
+    // Accept legacy categories to keep old nodes connectable after schema changes.
+    return Category == DialogueGraphPins::Flow
+        || Category == FName(TEXT("Flow"))
+        || Category.IsNone();
+}
+
 void UDialogueGraphSchema::GetGraphContextActions(FGraphContextMenuBuilder& ContextMenuBuilder) const
 {
     const FText Category = LOCTEXT("DialogueCategory", "Dialogue");
@@ -246,8 +260,7 @@ const FPinConnectionResponse UDialogueGraphSchema::CanCreateConnection(
     if (!A || !B)
         return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Invalid pins"));
 
-    if (A->PinType.PinCategory != DialogueGraphPins::Flow ||
-        B->PinType.PinCategory != DialogueGraphPins::Flow)
+    if (!IsDialogueFlowLikePin(A) || !IsDialogueFlowLikePin(B))
         return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Only dialogue flow connections allowed"));
 
     if (A->Direction == B->Direction)
