@@ -10,7 +10,7 @@ class UDialogueSession;
  * Blueprint action object triggered by dialogue nodes/endings.
  * Create Blueprint subclasses to implement gameplay logic without string event names.
  */
-UCLASS(BlueprintType, Blueprintable, Abstract)
+UCLASS(BlueprintType, Blueprintable, Abstract, EditInlineNew, DefaultToInstanced)
 class CATSOUP_ADVENTURE_API UDialogueAction : public UObject
 {
 	GENERATED_BODY()

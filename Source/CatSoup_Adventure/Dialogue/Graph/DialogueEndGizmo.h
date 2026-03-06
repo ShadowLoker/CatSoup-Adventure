@@ -17,9 +17,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Dialogue")
 	FName EndNodeId;
 
-	/** Action classes to run when the dialogue ends via this End node. */
-	UPROPERTY(EditAnywhere, Category = "Dialogue")
-	TArray<TSubclassOf<UDialogueAction>> Actions;
+	/** Action instances to run when the dialogue ends via this End node. */
+	UPROPERTY(EditAnywhere, Instanced, Category = "Dialogue")
+	TArray<TObjectPtr<UDialogueAction>> Actions;
 
 	virtual void AllocateDefaultPins() override;
 	virtual void ReconstructNode() override;

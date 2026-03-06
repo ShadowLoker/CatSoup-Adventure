@@ -26,8 +26,8 @@ struct FDialogueOutput
 	bool bEnabled = true;
 
 	/** Actions to run when this choice leads to an End node. Compiled from the connected End node's Actions. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TArray<TSubclassOf<UDialogueAction>> EndActions;
+	UPROPERTY(EditAnywhere, Instanced, BlueprintReadOnly)
+	TArray<TObjectPtr<UDialogueAction>> EndActions;
 
 	/** When connected to an End node, its EndNodeId. Used to look up "next start" entry point. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -52,8 +52,8 @@ struct FDialogueNode
 	TArray<FDialogueOutput> Outputs;
 
 	/** Actions to execute when this node is entered. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (DisplayName = "Actions"))
-	TArray<TSubclassOf<UDialogueAction>> Actions;
+	UPROPERTY(EditAnywhere, Instanced, BlueprintReadOnly, meta = (DisplayName = "Actions"))
+	TArray<TObjectPtr<UDialogueAction>> Actions;
 };
 
 /** One choice option. Index is passed to Advance(Index) when clicked. */

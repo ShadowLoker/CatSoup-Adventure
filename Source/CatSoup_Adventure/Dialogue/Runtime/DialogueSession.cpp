@@ -123,16 +123,17 @@ void UDialogueSession::End()
 	// NextEntryPointIdForNextStart stays set until read - component reads it in OnDialogueEnded handler
 }
 
-void UDialogueSession::TriggerActions(const TArray<TSubclassOf<UDialogueAction>>& Actions)
+void UDialogueSession::TriggerActions(const TArray<TObjectPtr<UDialogueAction>>& Actions)
 {
-	for (TSubclassOf<UDialogueAction> ActionClass : Actions)
+	for (UDialogueAction* ActionTemplate : Actions)
 	{
-		if (!ActionClass)
+		if (!ActionTemplate)
 		{
 			continue;
 		}
 
-		UDialogueAction* Action = NewObject<UDialogueAction>(this, ActionClass);
+		// Duplicate the authored template so each trigger gets an isolated runtime instance.
+		UDialogueAction* Action = DuplicateObject<UDialogueAction>(ActionTemplate, this);
 		if (!Action)
 		{
 			continue;
@@ -140,9 +141,10 @@ void UDialogueSession::TriggerActions(const TArray<TSubclassOf<UDialogueAction>>
 
 		Action->Execute(this);
 		OnActionTriggered.Broadcast(Action);
-
-		// Backward compatibility only.
-		OnDialogueEvent.Broadcast(ActionClass->GetFName());
+		if (Action->GetClass())
+		{
+			OnDialogueEvent.Broadcast(Action->GetClass()->GetFName());
+		}
 	}
 }
 

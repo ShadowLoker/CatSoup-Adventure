@@ -31,7 +31,7 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnDialogueActionTriggered OnActionTriggered;
 
-	/** Backward compatibility only. Emits Action->GetFName() when actions execute. */
+	/** Backward compatibility only. Emits Action class name when actions execute. */
 	UPROPERTY(BlueprintAssignable)
 	FOnDialogueEvent OnDialogueEvent;
 
@@ -65,6 +65,5 @@ private:
 
 	void ProcessCurrentNode();
 	void GoToNode(FName NodeId);
-	void TriggerActions(const TArray<TSubclassOf<UDialogueAction>>& Actions);
+	void TriggerActions(const TArray<TObjectPtr<UDialogueAction>>& Actions);
 };
-

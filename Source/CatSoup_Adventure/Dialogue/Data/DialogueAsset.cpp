@@ -38,6 +38,25 @@ void UDialogueAsset::CompileFromGraph()
         return;
     }
 
+    auto DuplicateActionsToAsset = [this](const TArray<TObjectPtr<UDialogueAction>>& SourceActions)
+    {
+        TArray<TObjectPtr<UDialogueAction>> DuplicatedActions;
+        DuplicatedActions.Reserve(SourceActions.Num());
+        for (UDialogueAction* SourceAction : SourceActions)
+        {
+            if (!SourceAction)
+            {
+                continue;
+            }
+
+            if (UDialogueAction* Duplicated = DuplicateObject<UDialogueAction>(SourceAction, this))
+            {
+                DuplicatedActions.Add(Duplicated);
+            }
+        }
+        return DuplicatedActions;
+    };
+
     // --- 1) Find Start Gizmo and get node connected to its output ---
     UDialogueStartGizmo* StartGizmo = nullptr;
     for (UEdGraphNode* Node : EditorGraph->Nodes)
@@ -136,6 +155,7 @@ void UDialogueAsset::CompileFromGraph()
         }
 
         FDialogueNode CompiledData = DNode->NodeData;
+        CompiledData.Actions = DuplicateActionsToAsset(DNode->NodeData.Actions);
 
         // Clear all next links, enabled state, end events, and connected end id
         for (auto& Out : CompiledData.Outputs)
@@ -172,7 +192,7 @@ void UDialogueAsset::CompileFromGraph()
 
             FName NextId = NAME_None;
             bool bWired = false;
-            TArray<TSubclassOf<UDialogueAction>> EndActs;
+            TArray<TObjectPtr<UDialogueAction>> EndActs;
             FName ConnectedEndId = NAME_None;
 
             if (Pin->LinkedTo.Num() > 0 && Pin->LinkedTo[0])
@@ -186,7 +206,7 @@ void UDialogueAsset::CompileFromGraph()
                 else if (UDialogueEndGizmo* EndGizmo = Cast<UDialogueEndGizmo>(Target))
                 {
                     bWired = true;
-                    EndActs = EndGizmo->Actions;
+                    EndActs = DuplicateActionsToAsset(EndGizmo->Actions);
                     ConnectedEndId = EndGizmo->EndNodeId.IsNone()
                         ? FName(*EndGizmo->NodeGuid.ToString())
                         : EndGizmo->EndNodeId;
