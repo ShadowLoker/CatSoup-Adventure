@@ -4,27 +4,54 @@
 //
 #include "Dialogue/Runtime/DialogueSession.h"
 #include "Dialogue/Data/DialogueAsset.h"
+#include "Dialogue/Runtime/DialogueAction.h"
 
-void UDialogueSession::Start(UDialogueAsset* InAsset)
+void UDialogueSession::Start(UDialogueAsset* InAsset, FName InEntryPointId)
 {
 	if (!InAsset || !InAsset->IsValid()) return;
 	End();
 
 	Asset = InAsset;
-	CurrentNodeId = Asset->StartNodeId;
+
+	// Use entry point if provided and found; otherwise default start
+	if (!InEntryPointId.IsNone())
+	{
+		if (InAsset->EntryPoints.Contains(InEntryPointId))
+		{
+			CurrentNodeId = InAsset->EntryPoints.FindChecked(InEntryPointId);
+			UE_LOG(LogTemp, Log,
+				TEXT("DialogueSession::Start using entry point '%s' -> node '%s'"),
+				*InEntryPointId.ToString(),
+				*CurrentNodeId.ToString());
+		}
+		else
+		{
+			CurrentNodeId = InAsset->StartNodeId;
+			UE_LOG(LogTemp, Warning,
+				TEXT("DialogueSession::Start: entry point '%s' not found in asset '%s'; falling back to StartNodeId '%s'"),
+				*InEntryPointId.ToString(),
+				*InAsset->GetName(),
+				*CurrentNodeId.ToString());
+		}
+	}
+	else
+	{
+		CurrentNodeId = InAsset->StartNodeId;
+		UE_LOG(LogTemp, Log,
+			TEXT("DialogueSession::Start using default StartNodeId '%s'"),
+			*CurrentNodeId.ToString());
+	}
+
 	bIsRunning = true;
 	ProcessCurrentNode();
 }
 
 void UDialogueSession::ProcessCurrentNode()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Processing node: %s"), *CurrentNodeId.ToString());
 	if (!Asset || !bIsRunning)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("No asset or session not running"));
 		return;
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Processing node: %s"), *Asset->GetName());
 
 	const FDialogueNode* Node = Asset->Nodes.Find(CurrentNodeId);
 	if (!Node)
@@ -34,10 +61,7 @@ void UDialogueSession::ProcessCurrentNode()
 		return;
 	}
 
-	for (const FName& EventName : Node->EventNames)
-	{
-		if (!EventName.IsNone()) OnDialogueEvent.Broadcast(EventName);
-	}
+	TriggerActions(Node->Actions);
 
 	FDialoguePayload Payload;
 	Payload.SpeakerId = Node->SpeakerId;
@@ -47,23 +71,42 @@ void UDialogueSession::ProcessCurrentNode()
 	{
 		for (int32 i = 0; i < NumOutputs; ++i)
 		{
-			Payload.Choices.Add({ i, Node->Outputs[i].Text });
+			// Only include wired choices (unwired = disabled, not applied)
+			if (Node->Outputs[i].bEnabled)
+			{
+				Payload.Choices.Add({ i, Node->Outputs[i].Text });
+			}
 		}
 	}
-	UE_LOG(LogTemp, Warning, TEXT("OnLineStarted broadcast - Speaker: %s, Text: %s"), *Node->SpeakerId.ToString(), *Node->Text.ToString());
 	OnLineStarted.Broadcast(Payload);
 }
 
 void UDialogueSession::Advance(int32 OutputIndex)
 {
 	if (!Asset || !bIsRunning) return;
-	const FDialogueNode* Node = Asset->Nodes.Find(CurrentNodeId); 
+	const FDialogueNode* Node = Asset->Nodes.Find(CurrentNodeId);
 	if (!Node || !Node->Outputs.IsValidIndex(OutputIndex))
 	{
 		End();
 		return;
 	}
-	GoToNode(Node->Outputs[OutputIndex].NextNodeId);
+
+	const FDialogueOutput& Out = Node->Outputs[OutputIndex];
+
+	// If this choice leads to End, fire actions and set "next start" if wired
+	if (Out.NextNodeId.IsNone())
+	{
+		TriggerActions(Out.EndActions);
+		NextEntryPointIdForNextStart = NAME_None;
+		if (!Out.ConnectedEndNodeId.IsNone() && Asset->EndToNextEntry.Contains(Out.ConnectedEndNodeId))
+		{
+			NextEntryPointIdForNextStart = Asset->EndToNextEntry.FindChecked(Out.ConnectedEndNodeId);
+		}
+		End();
+		return;
+	}
+
+	GoToNode(Out.NextNodeId);
 }
 
 void UDialogueSession::GoToNode(FName NodeId)
@@ -77,4 +120,31 @@ void UDialogueSession::End()
 {
 	bIsRunning = false;
 	OnDialogueEnded.Broadcast();
+	// NextEntryPointIdForNextStart stays set until read - component reads it in OnDialogueEnded handler
 }
+
+void UDialogueSession::TriggerActions(const TArray<TObjectPtr<UDialogueAction>>& Actions)
+{
+	for (UDialogueAction* ActionTemplate : Actions)
+	{
+		if (!ActionTemplate)
+		{
+			continue;
+		}
+
+		// Duplicate the authored template so each trigger gets an isolated runtime instance.
+		UDialogueAction* Action = DuplicateObject<UDialogueAction>(ActionTemplate, this);
+		if (!Action)
+		{
+			continue;
+		}
+
+		Action->Execute(this);
+		OnActionTriggered.Broadcast(Action);
+		if (Action->GetClass())
+		{
+			OnDialogueEvent.Broadcast(Action->GetClass()->GetFName());
+		}
+	}
+}
+
