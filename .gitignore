@@ -73,3 +73,21 @@ Plugins/**/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+# =========================
+# FMOD
+# =========================
+
+# FMOD cache and build artifacts
+**/FMODStudio/Intermediate/
+**/FMODStudio/Binaries/
+**/FMODStudio/.vs/
+**/FMODStudio/Build/
+
+# FMOD generated cache
+**/Content/FMOD/.cache/
+**/Content/FMOD/Desktop/.cache/
+
+# User-specific settings
+*.user
+*.cache
