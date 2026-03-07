@@ -20,6 +20,8 @@ void SDialogueEntryGizmo::UpdateGraphNode()
 {
 	InputPins.Empty();
 	OutputPins.Empty();
+	LeftNodeBox.Reset();
+	RightNodeBox.Reset();
 
 	ContentScale.Bind(this, &SGraphNode::GetContentScale);
 
@@ -117,7 +119,12 @@ void SDialogueEntryGizmo::AddPin(const TSharedRef<SGraphPin>& PinToAdd)
 				.HAlign(HAlign_Left)
 				.VAlign(VAlign_Center)
 				[
-					PinToAdd
+					SNew(SBox)
+					.MinDesiredWidth(28.f)
+					.MinDesiredHeight(24.f)
+					[
+						PinToAdd
+					]
 				];
 		}
 		InputPins.Add(PinToAdd);
@@ -131,7 +138,12 @@ void SDialogueEntryGizmo::AddPin(const TSharedRef<SGraphPin>& PinToAdd)
 				.HAlign(HAlign_Right)
 				.VAlign(VAlign_Center)
 				[
-					PinToAdd
+					SNew(SBox)
+					.MinDesiredWidth(28.f)
+					.MinDesiredHeight(24.f)
+					[
+						PinToAdd
+					]
 				];
 		}
 		OutputPins.Add(PinToAdd);

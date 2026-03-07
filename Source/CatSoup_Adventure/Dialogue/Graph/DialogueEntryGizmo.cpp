@@ -33,13 +33,26 @@ void UDialogueEntryGizmo::AllocateDefaultPins()
 
 void UDialogueEntryGizmo::ReconstructNode()
 {
+	bool bChanged = false;
 	// Ensure NextStart input pin exists (for legacy nodes saved before it was added)
 	if (!FindPin(TEXT("NextStart")))
 	{
 		Modify();
 		UEdGraphPin* Pin = CreatePin(EGPD_Input, DialogueGraphPins::Flow, FName(TEXT("NextStart")));
 		if (Pin) Pin->PinFriendlyName = FText::FromString(TEXT(""));
-		if (UEdGraph* Graph = GetGraph()) Graph->NotifyGraphChanged();
+		bChanged = true;
+	}
+	// Ensure Out output pin exists so wires can be pulled from this node
+	if (!FindPin(TEXT("Out")))
+	{
+		if (!bChanged) Modify();
+		UEdGraphPin* Pin = CreatePin(EGPD_Output, DialogueGraphPins::Flow, FName(TEXT("Out")));
+		if (Pin) Pin->PinFriendlyName = FText::FromString(TEXT(""));
+		bChanged = true;
+	}
+	if (bChanged && GetGraph())
+	{
+		GetGraph()->NotifyGraphChanged();
 	}
 }
 
