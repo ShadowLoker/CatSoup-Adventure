@@ -9,7 +9,6 @@
 void UDialogueSession::Start(UDialogueAsset* InAsset, FName InEntryPointId)
 {
 	if (!InAsset || !InAsset->IsValid()) return;
-	End();
 
 	Asset = InAsset;
 
