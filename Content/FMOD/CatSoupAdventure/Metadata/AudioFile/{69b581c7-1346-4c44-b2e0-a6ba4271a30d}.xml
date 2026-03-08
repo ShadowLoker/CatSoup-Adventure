@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{69b581c7-1346-4c44-b2e0-a6ba4271a30d}">
+		<property name="assetPath">
+			<value>167321__dasdeer__metal-hit-8.wav</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>44.0999985</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>0.98535147392290245</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{d1ba0065-b0b0-4298-8de3-3b22c96d3f74}</destination>
+		</relationship>
+	</object>
+</objects>
