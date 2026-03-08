@@ -1,36 +1,77 @@
-## CatSoup Adventure
+# CatSoup Adventure
 
-**CatSoup Adventure** és un joc narratiu en Unreal Engine 5.7 ambientat en una presó medieval.  
-El jugador explora, interactua amb l’entorn i conversa amb NPCs per avançar en la fugida, incloent un minijoc de *lockpicking* integrat a la UI.
+**CatSoup Adventure** is a narrative-driven game developed in **Unreal Engine 5.7**, set in a **medieval prison**.  
+The player explores the environment, interacts with objects and NPCs, and progresses through conversations while planning an escape. The experience also includes a **lockpicking minigame integrated directly into the UI**, reinforcing the interactive storytelling.
 
-## Estat dels requisits (rúbrica)
+---
 
-| Requisit | Estat | Implementació |
+## 🧭 Project Overview
+
+The project combines **exploration, narrative interaction, and UI-driven gameplay mechanics** to create an immersive dungeon environment where player choices and interactions guide progression.
+
+Core elements include:
+
+- Exploration of a medieval prison environment
+- NPC dialogue system with branching options
+- Interactive UI systems
+- Integrated gameplay minigame (lockpicking)
+- Localization and multi-language voice support
+
+---
+
+## 📋 Requirement Status (Rubric)
+
+| Requirement | Status | Implementation |
 |---|---|---|
-| (2p) Moviment i interacció del jugador | Implementat | Control de jugador amb moviment, càmera i sistema d’interacció amb objectes/NPC. |
-| (2p) Controlador d’animacions | Implementat | Locomoció bàsica, bloqueig de moviment durant diàlegs i ús de montage/canvi de pose en context narratiu. |
-| (2p) Minijoc UI complet (REF002) | Implementat | Minijoc de *lockpicking* completament en UI, connectat al flux del diàleg i als resultats de partida. |
-| (1p) Menús | Implementat | Menú principal amb iniciar partida i sortir; menú de pausa que atura l’execució del joc. |
-| (2p) UI de diàlegs (REF001) | Implementat | El widget de diàleg s’obre en iniciar conversa i es tanca en finalitzar-la. |
-| (1p) Extres | Implementat | Build del projecte, nivell decorat i almenys 2 animacions d’UI. |
-| (+1p) Joc en dos idiomes | Implementat | Localització en **anglès** i **espanyol** (textos de menús i diàlegs). |
-| (+1p) Veus en diversos idiomes | Implementat | Veus/dialogues en múltiples idiomes amb integració d’àudio (FMOD). |
+| **(2p) Player movement & interaction** | ✅ Implemented | Player controller with movement, camera system, and interaction mechanics for objects and NPCs. |
+| **(2p) Animation controller** | ✅ Implemented | Basic locomotion system, movement lock during dialogues, and context-based animation changes using montages. |
+| **(2p) Complete UI minigame (REF002)** | ✅ Implemented | Lockpicking minigame fully implemented in UI and integrated with dialogue progression and gameplay results. |
+| **(1p) Menus** | ✅ Implemented | Main menu with start/exit options and a pause menu that stops gameplay execution. |
+| **(2p) Dialogue UI (REF001)** | ✅ Implemented | Dialogue widget that opens when starting conversations and closes automatically when the interaction ends. |
+| **(1p) Extras** | ✅ Implemented | Playable build, decorated level environment, and at least two UI animations. |
+| **(+1p) Two-language support** | ✅ Implemented | Localization available in **English** and **Spanish** for menus and dialogue text. |
+| **(+1p) Multi-language voice acting** | ✅ Implemented | Dialogue voices in multiple languages with **FMOD audio integration**. |
 
-## Aspectes tècnics destacats
+---
 
-- Desenvolupament híbrid amb **Blueprints + C++**.
-- Sistema de diàleg amb estructura de nodes, opcions i accions de joc.
-- Integració d’àudio amb **FMOD** (música, FX i veus).
-- Sistema de localització preparat per a múltiples idiomes.
-- Estructura modular per escalar noves escenes, diàlegs i minijocs.
+## ⚙️ Technical Highlights
 
-## Contingut principal del projecte
+The project combines **Blueprint scripting and C++ programming** to balance rapid iteration with scalable architecture.
 
-- **Gameplay**: exploració, interacció i progrés per objectius.
-- **Narrativa**: converses amb opcions i conseqüències.
-- **UI**: menús, pausa, diàlegs i minijoc.
-- **Art/Level Design**: ambient de dungeon decorat per reforçar la immersió.
+Key technical systems include:
 
-## Estat del projecte
+- Hybrid development using **Blueprints + C++**
+- **Node-based dialogue system** with choices and gameplay actions
+- **FMOD integration** for music, sound effects, and voice lines
+- **Localization system** supporting multiple languages
+- **Modular architecture** allowing expansion of scenes, dialogue trees, and minigames
 
-El projecte es troba en estat jugable amb les funcionalitats principals i extres implementats segons la rúbrica, incloent els punts addicionals de localització i veus en més d’un idioma.
+---
+
+## 🎮 Core Project Content
+
+### Gameplay
+- Exploration of a medieval dungeon
+- Object and NPC interaction system
+- Objective-based progression
+
+### Narrative
+- Dialogue system with branching choices
+- Conversations influencing gameplay flow
+
+### UI Systems
+- Main menu and pause menu
+- Dialogue interface
+- Lockpicking minigame UI
+
+### Art & Level Design
+- Decorated dungeon environment
+- Medieval prison atmosphere designed to enhance immersion
+
+---
+
+## 📦 Project Status
+
+The project is currently **fully playable**, with all core systems implemented according to the rubric requirements.  
+
+Additional features such as **localization and multi-language voice support** have also been completed, providing a more polished and immersive experience.
