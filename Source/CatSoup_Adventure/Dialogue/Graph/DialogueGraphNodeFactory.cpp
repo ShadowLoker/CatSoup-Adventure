@@ -1,3 +1,4 @@
+#if WITH_EDITOR
 #include "DialogueGraphNodeFactory.h"
 #include "Dialogue/Graph/DialogueGraphNode.h"
 #include "Dialogue/Graph/DialogueStartGizmo.h"
@@ -28,3 +29,5 @@ TSharedPtr<SGraphNode> FDialogueGraphNodeFactory::CreateNode(UEdGraphNode* Node)
 	}
 	return nullptr;
 }
+
+#endif

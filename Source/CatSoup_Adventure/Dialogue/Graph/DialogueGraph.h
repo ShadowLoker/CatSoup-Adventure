@@ -1,7 +1,7 @@
-﻿// DialogueGraph.h
+// DialogueGraph.h
 #pragma once
+
 #include "EdGraph/EdGraph.h"
-#include "EdGraphSchema_K2.h"
 #include "DialogueGraph.generated.h"
 
 UCLASS()

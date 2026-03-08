@@ -1,22 +1,24 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "CatSoup_Adventure.h"
-#include "Modules/ModuleManager.h"
-#include "Modules/ModuleManager.h"          // For FModuleManager
-#include "AssetToolsModule.h"                // For FAssetToolsModule
-#include "IAssetTools.h"                    // For IAssetTools interface
-#include "Dialogue/Graph/DialogueAssetTypeActions.h" // For FDialogueAssetTypeActions
+
+#if WITH_EDITOR
+#include "AssetToolsModule.h"
+#include "Dialogue/Graph/DialogueAssetTypeActions.h"
 #include "Dialogue/Graph/DialogueGraphNodeFactory.h"
 #include "EdGraphUtilities.h"
+#include "IAssetTools.h"
+#include "Modules/ModuleManager.h"
+#endif
 
-IMPLEMENT_MODULE(FCatSoup_Adventure, CatSoup_Adventure)
+IMPLEMENT_PRIMARY_GAME_MODULE(FCatSoup_Adventure, CatSoup_Adventure, "CatSoup_Adventure");
 
 void FCatSoup_Adventure::StartupModule()
 {
+#if WITH_EDITOR
 	IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
 	AssetTools.RegisterAssetTypeActions(MakeShareable(new FDialogueAssetTypeActions()));
 
-#if WITH_EDITOR
 	DialogueNodeFactory = MakeShared<FDialogueGraphNodeFactory>();
 	FEdGraphUtilities::RegisterVisualNodeFactory(DialogueNodeFactory);
 #endif

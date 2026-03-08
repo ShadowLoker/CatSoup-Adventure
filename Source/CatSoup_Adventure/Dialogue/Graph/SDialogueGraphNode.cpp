@@ -1,3 +1,4 @@
+#if WITH_EDITOR
 #include "SDialogueGraphNode.h"
 
 #include "Dialogue/Graph/DialogueGraphNode.h"
@@ -311,3 +312,5 @@ FReply SDialogueGraphNode::OnAddOutputClicked()
 
 	return FReply::Handled();
 }
+
+#endif

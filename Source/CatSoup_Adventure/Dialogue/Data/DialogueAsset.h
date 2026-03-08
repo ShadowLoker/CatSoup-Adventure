@@ -28,12 +28,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TMap<FName, FName> EndToNextEntry;
 
+#if WITH_EDITOR
 	void CompileFromGraph();
 	virtual void PreSave(FObjectPreSaveContext SaveContext) override;
-	
+#endif
+
 	UFUNCTION(BlueprintCallable, Category = "Dialogue")
 	bool IsValid() const;
 
+#if WITH_EDITORONLY_DATA
 	UPROPERTY()
 	TObjectPtr<class UDialogueGraph> EditorGraph;
+#endif
 };

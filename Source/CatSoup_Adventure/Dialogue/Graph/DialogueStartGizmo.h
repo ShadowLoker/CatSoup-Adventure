@@ -12,8 +12,11 @@ class CATSOUP_ADVENTURE_API UDialogueStartGizmo : public UEdGraphNode
 	GENERATED_BODY()
 
 public:
+#if WITH_EDITOR
 	virtual void AllocateDefaultPins() override;
 	virtual FText GetNodeTitle(ENodeTitleType::Type TitleType) const override;
 	virtual bool CanUserDeleteNode() const override { return false; }
 	virtual bool CanDuplicateNode() const override { return false; }
+#endif
+
 };

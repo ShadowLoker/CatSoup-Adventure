@@ -1,4 +1,5 @@
 // DialogueEntryGizmo.cpp
+#if WITH_EDITOR
 #include "DialogueEntryGizmo.h"
 #if WITH_EDITOR
 #include "UObject/UnrealType.h"
@@ -62,3 +63,5 @@ FText UDialogueEntryGizmo::GetNodeTitle(ENodeTitleType::Type TitleType) const
 		? FText::FromString(TEXT("Entry (set ID)"))
 		: FText::FromName(EntryPointId);
 }
+
+#endif

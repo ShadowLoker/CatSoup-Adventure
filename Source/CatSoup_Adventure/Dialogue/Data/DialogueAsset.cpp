@@ -1,13 +1,17 @@
 // CatSoup Adventure - Dialogue System
 #include "Dialogue/Data/DialogueAsset.h"
+
+#if WITH_EDITOR
 #include "Dialogue/Graph/DialogueGraph.h"
 #include "Dialogue/Graph/DialogueGraphNode.h"
-#include "Dialogue/Graph/DialogueStartGizmo.h"
-#include "Dialogue/Graph/DialogueEndGizmo.h"
 #include "Dialogue/Graph/DialogueEntryGizmo.h"
+#include "Dialogue/Graph/DialogueEndGizmo.h"
+#include "Dialogue/Graph/DialogueStartGizmo.h"
 #include "Dialogue/Runtime/DialogueAction.h"
 #include "UObject/ObjectSaveContext.h"
+#endif
 
+#if WITH_EDITOR
 static bool TryParseOutIndex(const FName& PinName, int32& OutIndex)
 {
     // Expected: Out_0, Out_1, ...
@@ -242,6 +246,7 @@ void UDialogueAsset::PreSave(FObjectPreSaveContext SaveContext)
 	CompileFromGraph();
 	Super::PreSave(SaveContext);
 }
+#endif
 
 bool UDialogueAsset::IsValid() const
 {

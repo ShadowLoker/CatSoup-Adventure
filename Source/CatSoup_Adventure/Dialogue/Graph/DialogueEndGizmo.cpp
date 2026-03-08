@@ -1,4 +1,5 @@
 // DialogueEndGizmo.cpp
+#if WITH_EDITOR
 #include "DialogueEndGizmo.h"
 
 void UDialogueEndGizmo::AllocateDefaultPins()
@@ -27,3 +28,5 @@ FText UDialogueEndGizmo::GetNodeTitle(ENodeTitleType::Type TitleType) const
 {
 	return FText::FromString(TEXT("End"));
 }
+
+#endif

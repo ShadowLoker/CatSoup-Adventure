@@ -1,5 +1,6 @@
 // cpp
 // Source/CatSoup_Adventure/Dialogue/Graph/DialogueAssetEditor.cpp
+#if WITH_EDITOR
 #include "DialogueAssetEditorToolkit.h"
 
 #include "GraphEditor.h"
@@ -282,3 +283,5 @@ void FDialogueAssetEditorToolkit::DeleteSelectedNodes()
 }
 
 #undef LOCTEXT_NAMESPACE
+
+#endif

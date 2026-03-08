@@ -1,4 +1,5 @@
 // DialogueStartGizmo.cpp
+#if WITH_EDITOR
 #include "DialogueStartGizmo.h"
 
 void UDialogueStartGizmo::AllocateDefaultPins()
@@ -14,3 +15,5 @@ FText UDialogueStartGizmo::GetNodeTitle(ENodeTitleType::Type TitleType) const
 {
 	return FText::FromString(TEXT("Start"));
 }
+
+#endif

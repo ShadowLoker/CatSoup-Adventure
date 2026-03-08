@@ -3,10 +3,10 @@
 
 #include "Dialogue/Graph/DialogueGraphNode.h"
 #include "EdGraph/EdGraphSchema.h"
-#include "ToolMenus.h"
-#include "ToolMenu.h"
-#include "ToolMenuSection.h"
 #include "DialogueGraphSchema.generated.h"
+
+class UToolMenu;
+class UGraphNodeContextMenuContext;
 
 UCLASS()
 class CATSOUP_ADVENTURE_API UDialogueGraphSchema : public UEdGraphSchema

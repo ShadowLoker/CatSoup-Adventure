@@ -1,3 +1,4 @@
+#if WITH_EDITOR
 #include "SDialogueStartGizmo.h"
 #include "Dialogue/Graph/DialogueStartGizmo.h"
 #include "EdGraph/EdGraphPin.h"
@@ -66,3 +67,5 @@ void SDialogueStartGizmo::CreatePinWidgets()
 		}
 	}
 }
+
+#endif

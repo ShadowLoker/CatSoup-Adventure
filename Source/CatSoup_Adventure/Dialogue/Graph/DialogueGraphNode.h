@@ -14,6 +14,7 @@ class CATSOUP_ADVENTURE_API UDialogueGraphNode : public UEdGraphNode
 	GENERATED_BODY()
 
 public:
+#if WITH_EDITORONLY_DATA
 	UPROPERTY(EditAnywhere, Category="Dialogue")
 	FDialogueNode NodeData;
 
@@ -23,11 +24,12 @@ public:
 	/** Node color for visual organization of dialogue paths. Editable via right-click context menu. */
 	UPROPERTY(EditAnywhere, Category="Dialogue")
 	FLinearColor NodeColor = FLinearColor(0.05f, 0.05f, 0.05f, 0.8f);
+#endif
 
 	/** When set before ReconstructNode, output at this index was removed; restore skips it so remaining outputs get correct links. */
+#if WITH_EDITOR
 	int32 RemovedOutputIndexDuringReconstruct = -1;
 
-	#if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& E) override
 	{
 		Super::PostEditChangeProperty(E);
@@ -78,7 +80,6 @@ public:
 			}
 		}
 	}
-	#endif
 
 	virtual void ReconstructNode() override
 	{
@@ -198,5 +199,6 @@ public:
 
 	virtual bool CanUserDeleteNode() const override { return true; }
 	virtual bool CanDuplicateNode() const override { return true; }
-	
+#endif
+
 };

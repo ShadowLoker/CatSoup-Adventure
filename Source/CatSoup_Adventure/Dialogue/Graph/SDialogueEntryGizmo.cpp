@@ -1,3 +1,4 @@
+#if WITH_EDITOR
 #include "SDialogueEntryGizmo.h"
 #include "Dialogue/Graph/DialogueEntryGizmo.h"
 #include "EdGraph/EdGraphPin.h"
@@ -149,3 +150,5 @@ void SDialogueEntryGizmo::AddPin(const TSharedRef<SGraphPin>& PinToAdd)
 		OutputPins.Add(PinToAdd);
 	}
 }
+
+#endif

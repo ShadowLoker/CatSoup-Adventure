@@ -13,15 +13,18 @@ class CATSOUP_ADVENTURE_API UDialogueEntryGizmo : public UEdGraphNode
 
 public:
 	/** ID used when calling Start(Asset, EntryPointId). E.g. "Return", "Continue". Cannot be "Default" (reserved). */
+#if WITH_EDITORONLY_DATA
 	UPROPERTY(EditAnywhere, Category = "Dialogue")
 	FName EntryPointId;
+#endif
 
+#if WITH_EDITOR
 	virtual void AllocateDefaultPins() override;
 	virtual void ReconstructNode() override;
-#if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
 	virtual FText GetNodeTitle(ENodeTitleType::Type TitleType) const override;
 	virtual bool CanUserDeleteNode() const override { return true; }
 	virtual bool CanDuplicateNode() const override { return true; }
+#endif
+
 };

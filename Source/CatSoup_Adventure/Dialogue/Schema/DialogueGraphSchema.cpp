@@ -1,4 +1,6 @@
 #include "DialogueGraphSchema.h"
+
+#if WITH_EDITOR
 #include "Dialogue/Graph/DialogueGraphNode.h"
 #include "Dialogue/Graph/DialogueStartGizmo.h"
 #include "Dialogue/Graph/DialogueEndGizmo.h"
@@ -618,5 +620,36 @@ void UDialogueGraphSchema::BreakSinglePinLink(UEdGraphPin* SourcePin, UEdGraphPi
                 G->NotifyGraphChanged();
     }
 }
+
+#else
+
+void UDialogueGraphSchema::GetGraphContextActions(FGraphContextMenuBuilder& ContextMenuBuilder) const
+{
+}
+
+const FPinConnectionResponse UDialogueGraphSchema::CanCreateConnection(
+    const UEdGraphPin* A, const UEdGraphPin* B) const
+{
+    return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, FText::GetEmpty());
+}
+
+void UDialogueGraphSchema::GetContextMenuActions(UToolMenu* Menu, UGraphNodeContextMenuContext* Context) const
+{
+}
+
+bool UDialogueGraphSchema::TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) const
+{
+    return false;
+}
+
+void UDialogueGraphSchema::BreakPinLinks(UEdGraphPin& TargetPin, bool bSendsNodeNotif) const
+{
+}
+
+void UDialogueGraphSchema::BreakSinglePinLink(UEdGraphPin* SourcePin, UEdGraphPin* TargetPin) const
+{
+}
+
+#endif
 
 #undef LOCTEXT_NAMESPACE
