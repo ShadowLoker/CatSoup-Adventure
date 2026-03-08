@@ -1,0 +1,386 @@
+﻿# Game English translation.
+# Fill out your copyright notice in the Description page of Project Settings.
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: Game\n"
+"POT-Creation-Date: 2026-03-08 20:06\n"
+"PO-Revision-Date: 2026-03-08 20:06\n"
+"Language-Team: \n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. Key:	19D5F77842FBCB66F47FF9ABED52C1E2
+#. SourceLocation:	/Game/Game/Blueprints/MainMenu/UW_MainMenu.UW_MainMenu_C:WidgetTree.TextBlock.Text
+#: /Game/Game/Blueprints/MainMenu/UW_MainMenu.UW_MainMenu_C:WidgetTree.TextBlock.Text
+msgctxt ",19D5F77842FBCB66F47FF9ABED52C1E2"
+msgid "Settings"
+msgstr "Settings"
+
+#. Key:	4582A4374C122CE3F9D5B0A281CE70B5
+#. SourceLocation:	/Game/Game/Blueprints/MainMenu/UW_MainMenu.UW_MainMenu_C:WidgetTree.TextBlock_1.Text
+#: /Game/Game/Blueprints/MainMenu/UW_MainMenu.UW_MainMenu_C:WidgetTree.TextBlock_1.Text
+msgctxt ",4582A4374C122CE3F9D5B0A281CE70B5"
+msgid "Quit"
+msgstr "Quit"
+
+#. Key:	D60AB1C047570BD965A9D091CD45E5E5
+#. SourceLocation:	/Game/Game/Blueprints/MainMenu/UW_MainMenu.UW_MainMenu_C:WidgetTree.TextBlock_69.Text
+#: /Game/Game/Blueprints/MainMenu/UW_MainMenu.UW_MainMenu_C:WidgetTree.TextBlock_69.Text
+msgctxt ",D60AB1C047570BD965A9D091CD45E5E5"
+msgid "Play"
+msgstr "Play"
+
+#. Key:	817EC28B495EB15FB4CC3C9D4663C0D4
+#. SourceLocation:	/Game/Game/Blueprints/MainMenu/UW_Settings.UW_Settings_C:WidgetTree.TextBlock_52.Text
+#: /Game/Game/Blueprints/MainMenu/UW_Settings.UW_Settings_C:WidgetTree.TextBlock_52.Text
+msgctxt ",817EC28B495EB15FB4CC3C9D4663C0D4"
+msgid "Back"
+msgstr "Back"
+
+#. Key:	1483EB554B79E8658A4C8A881D38B7A0
+#. SourceLocation:	/Game/Game/Blueprints/MainMenu/UW_Settings.UW_Settings_C:WidgetTree.TextBlock_756.Text
+#: /Game/Game/Blueprints/MainMenu/UW_Settings.UW_Settings_C:WidgetTree.TextBlock_756.Text
+msgctxt ",1483EB554B79E8658A4C8A881D38B7A0"
+msgid "Language"
+msgstr "Language"
+
+#. Key:	E47CBB2D471FE5AC65F4DFB35F43193E
+#. SourceLocation:	/Game/Game/Blueprints/MainMenu/UW_Settings.UW_Settings_C:WidgetTree.TextBlock_863.Text
+#: /Game/Game/Blueprints/MainMenu/UW_Settings.UW_Settings_C:WidgetTree.TextBlock_863.Text
+msgctxt ",E47CBB2D471FE5AC65F4DFB35F43193E"
+msgid "Volume"
+msgstr "Volume"
+
+#. Key:	7DDE450D4F2E1AB061F2FE97239D0E4E
+#. SourceLocation:	/Game/Game/Blueprints/MainMenu/UW_Settings.UW_Settings_C:WidgetTree.TextBlock_984.Text
+#: /Game/Game/Blueprints/MainMenu/UW_Settings.UW_Settings_C:WidgetTree.TextBlock_984.Text
+msgctxt ",7DDE450D4F2E1AB061F2FE97239D0E4E"
+msgid "Text Speed"
+msgstr "Text Speed"
+
+#. Key:	C9C843774D99158C5388528EA866BB1B
+#. SourceLocation:	/Game/Game/Blueprints/Testing/OptionButton.OptionButton_C:WidgetTree.TxtLabel.Text
+#: /Game/Game/Blueprints/Testing/OptionButton.OptionButton_C:WidgetTree.TxtLabel.Text
+msgctxt ",C9C843774D99158C5388528EA866BB1B"
+msgid "Testing Text"
+msgstr "Testing Text"
+
+#. Key:	047E5D514F4968014D8EFEB00E40A67A
+#. SourceLocation:	/Game/Game/Blueprints/Testing/UW_DialogueTest.UW_DialogueTest_C:WidgetTree.Dialogue.Text
+#: /Game/Game/Blueprints/Testing/UW_DialogueTest.UW_DialogueTest_C:WidgetTree.Dialogue.Text
+msgctxt ",047E5D514F4968014D8EFEB00E40A67A"
+msgid "Text Blockasdasdass dsaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa aaaaaaa"
+msgstr "Text Blockasdasdass dsaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa aaaaaaa"
+
+#. Key:	E2E9B07A473EFF857CDEBDBA8F969992
+#. SourceLocation:	/Game/Game/Blueprints/Testing/UW_DialogueTest.UW_DialogueTest_C:WidgetTree.Speaker.Text
+#: /Game/Game/Blueprints/Testing/UW_DialogueTest.UW_DialogueTest_C:WidgetTree.Speaker.Text
+msgctxt ",E2E9B07A473EFF857CDEBDBA8F969992"
+msgid "Cellmate"
+msgstr "Cellmate"
+
+#. Key:	842CDBE34F469B03AEA5E499AC6F81E4
+#. SourceLocation:	/Game/Game/Blueprints/UI/WBP_Dialoge.WBP_Dialoge_C:WidgetTree.TextBlock_0.Text
+#: /Game/Game/Blueprints/UI/WBP_Dialoge.WBP_Dialoge_C:WidgetTree.TextBlock_0.Text
+msgctxt ",842CDBE34F469B03AEA5E499AC6F81E4"
+msgid "hola"
+msgstr "hola"
+
+#. Key:	5027DB56418787EC4E3506BC03BF73BF
+#. SourceLocation:	/Game/Game/Blueprints/UI/WBP_PauseMenu.WBP_PauseMenu_C:WidgetTree.Button_0.ToolTipText
+#: /Game/Game/Blueprints/UI/WBP_PauseMenu.WBP_PauseMenu_C:WidgetTree.Button_0.ToolTipText
+msgctxt ",5027DB56418787EC4E3506BC03BF73BF"
+msgid "Resume"
+msgstr "Resume"
+
+#. Key:	866A7CF84AA2253808B052B665456190
+#. SourceLocation:	/Game/Game/Blueprints/UI/WBP_PauseMenu.WBP_PauseMenu_C:WidgetTree.TextBlock.Text
+#: /Game/Game/Blueprints/UI/WBP_PauseMenu.WBP_PauseMenu_C:WidgetTree.TextBlock.Text
+msgctxt ",866A7CF84AA2253808B052B665456190"
+msgid "Quit"
+msgstr "Quit"
+
+#. Key:	1AD6CFC044D0CCB87C37578693E5943A
+#. SourceLocation:	/Game/Game/Blueprints/UI/WBP_PauseMenu.WBP_PauseMenu_C:WidgetTree.TextBlock_50.Text
+#: /Game/Game/Blueprints/UI/WBP_PauseMenu.WBP_PauseMenu_C:WidgetTree.TextBlock_50.Text
+msgctxt ",1AD6CFC044D0CCB87C37578693E5943A"
+msgid "Resume"
+msgstr "Resume"
+
+#. Key:	AC1841784A85645406744C943FCC26C0
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(0 - Value).Nodes.Outputs(0).Outputs.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(0 - Value).Nodes.Outputs(0).Outputs.Text
+msgctxt ",AC1841784A85645406744C943FCC26C0"
+msgid "Where am I?"
+msgstr "Where am I?"
+
+#. Key:	AD87E3A6406B55E5D7037B90722C3E43
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(0 - Value).Nodes.Outputs(1).Outputs.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(0 - Value).Nodes.Outputs(1).Outputs.Text
+msgctxt ",AD87E3A6406B55E5D7037B90722C3E43"
+msgid "Who are you?"
+msgstr "Who are you?"
+
+#. Key:	91AD718441724CAEFF6958A08368A824
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(0 - Value).Nodes.Outputs(2).Outputs.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(0 - Value).Nodes.Outputs(2).Outputs.Text
+msgctxt ",91AD718441724CAEFF6958A08368A824"
+msgid "Leave me alone."
+msgstr "Leave me alone."
+
+#. Key:	B218EBC74759E4FADD2F2787E0CE746B
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(0 - Value).Nodes.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(0 - Value).Nodes.Text
+msgctxt ",B218EBC74759E4FADD2F2787E0CE746B"
+msgid "Finally awake? Took you long enough."
+msgstr "Finally awake? Took you long enough."
+
+#. Key:	798EA36949CBB579000E33B4A41D87F5
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(1 - Value).Nodes.Outputs(0).Outputs.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(1 - Value).Nodes.Outputs(0).Outputs.Text
+msgctxt ",798EA36949CBB579000E33B4A41D87F5"
+msgid "We're doomed then..."
+msgstr "We're doomed then..."
+
+#. Key:	6CF179F54285F428A6D0D29661D546DC
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(1 - Value).Nodes.Outputs(1).Outputs.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(1 - Value).Nodes.Outputs(1).Outputs.Text
+msgctxt ",6CF179F54285F428A6D0D29661D546DC"
+msgid "There must be a way out."
+msgstr "There must be a way out."
+
+#. Key:	9F1848D44E6DDB410720ADAA23387942
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(1 - Value).Nodes.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(1 - Value).Nodes.Text
+msgctxt ",9F1848D44E6DDB410720ADAA23387942"
+msgid "I won't ask you how come you've ended in Blackstone dungeon. But... Not the kind of place people ever leave."
+msgstr "I won't ask you how come you've ended in Blackstone dungeon. But... Not the kind of place people ever leave."
+
+#. Key:	A6174D9C460F9BF2C49BAA98ED894F24
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(10 - Value).Nodes.Outputs(0).Outputs.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(10 - Value).Nodes.Outputs(0).Outputs.Text
+msgctxt ",A6174D9C460F9BF2C49BAA98ED894F24"
+msgid "Okay, i'll do it."
+msgstr "Okay, i'll do it."
+
+#. Key:	2841C5C14064628D9DFB709949AF141F
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(10 - Value).Nodes.Outputs(1).Outputs.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(10 - Value).Nodes.Outputs(1).Outputs.Text
+msgctxt ",2841C5C14064628D9DFB709949AF141F"
+msgid "Wait a bit."
+msgstr "Wait a bit."
+
+#. Key:	D9C292FC4B252988E1401C8928067F1E
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(10 - Value).Nodes.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(10 - Value).Nodes.Text
+msgctxt ",D9C292FC4B252988E1401C8928067F1E"
+msgid "Then we stay here. Forever.\r\nSo… try not to fail."
+msgstr "Then we stay here. Forever.\r\nSo… try not to fail."
+
+#. Key:	FE2FF78D4193EB1913381EAEA0C573D3
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(11 - Value).Nodes.Outputs(0).Outputs.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(11 - Value).Nodes.Outputs(0).Outputs.Text
+msgctxt ",FE2FF78D4193EB1913381EAEA0C573D3"
+msgid "Hole?"
+msgstr "Hole?"
+
+#. Key:	C9D9DAFE46D263CF3ECD73BDDB545F25
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(11 - Value).Nodes.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(11 - Value).Nodes.Text
+msgctxt ",C9D9DAFE46D263CF3ECD73BDDB545F25"
+msgid "Name's Aldric.\r\nGod... It's been ages since someone last came to this hole.\r\n"
+msgstr "Name's Aldric.\r\nGod... It's been ages since someone last came to this hole.\r\n"
+
+#. Key:	F16C8D15490D148101B0699770F475E3
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(12 - Value).Nodes.Outputs(0).Outputs.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(12 - Value).Nodes.Outputs(0).Outputs.Text
+msgctxt ",F16C8D15490D148101B0699770F475E3"
+msgid "I guess so."
+msgstr "I guess so."
+
+#. Key:	453280FD40BA6624EF737CBB876C915D
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(12 - Value).Nodes.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(12 - Value).Nodes.Text
+msgctxt ",453280FD40BA6624EF737CBB876C915D"
+msgid "So you wanna talk now? Good...  you've come to your senses."
+msgstr "So you wanna talk now? Good...  you've come to your senses."
+
+#. Key:	F443E576462031EA5B24599D0BCEA4E9
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(13 - Value).Nodes.Outputs(0).Outputs.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(13 - Value).Nodes.Outputs(0).Outputs.Text
+msgctxt ",F443E576462031EA5B24599D0BCEA4E9"
+msgid "Fair point."
+msgstr "Fair point."
+
+#. Key:	3C2556B344E60FEDAFB465B8D1B21575
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(13 - Value).Nodes.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(13 - Value).Nodes.Text
+msgctxt ",3C2556B344E60FEDAFB465B8D1B21575"
+msgid "I'm not a burglar. I'm here for killing people. I don't even know how this thing works!\r\n"
+msgstr "I'm not a burglar. I'm here for killing people. I don't even know how this thing works!\r\n"
+
+#. Key:	5E1A5B304492320EE4DD7984C4F2306A
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(14 - Value).Nodes.Outputs(0).Outputs.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(14 - Value).Nodes.Outputs(0).Outputs.Text
+msgctxt ",5E1A5B304492320EE4DD7984C4F2306A"
+msgid "I'll do it"
+msgstr "I'll do it"
+
+#. Key:	2D9DAE5643CAEAA8A1C7BF9ACCBFCF84
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(14 - Value).Nodes.Outputs(1).Outputs.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(14 - Value).Nodes.Outputs(1).Outputs.Text
+msgctxt ",2D9DAE5643CAEAA8A1C7BF9ACCBFCF84"
+msgid "No..."
+msgstr "No..."
+
+#. Key:	C77D21BB413C48D7396677A601AE4D6C
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(14 - Value).Nodes.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(14 - Value).Nodes.Text
+msgctxt ",C77D21BB413C48D7396677A601AE4D6C"
+msgid "Wanna try now?"
+msgstr "Wanna try now?"
+
+#. Key:	0EC2B77F47C1546B40BE37AA8023181E
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(2 - Value).Nodes.Outputs(0).Outputs.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(2 - Value).Nodes.Outputs(0).Outputs.Text
+msgctxt ",0EC2B77F47C1546B40BE37AA8023181E"
+msgid "And?"
+msgstr "And?"
+
+#. Key:	E2E1B02D44D291A6C82290A3BE6578AF
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(2 - Value).Nodes.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(2 - Value).Nodes.Text
+msgctxt ",E2E1B02D44D291A6C82290A3BE6578AF"
+msgid "Relax. I’ve been watching the guards for quite some time..\r\nThey just left. So we can talk."
+msgstr "Relax. I’ve been watching the guards for quite some time..\r\nThey just left. So we can talk."
+
+#. Key:	CB1FF9C44795A1058BB03184F54863CA
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(3 - Value).Nodes.Outputs(0).Outputs.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(3 - Value).Nodes.Outputs(0).Outputs.Text
+msgctxt ",CB1FF9C44795A1058BB03184F54863CA"
+msgid "What is this?"
+msgstr "What is this?"
+
+#. Key:	EA72F30F427F5226FE0D95B738F96321
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(3 - Value).Nodes.Outputs(1).Outputs.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(3 - Value).Nodes.Outputs(1).Outputs.Text
+msgctxt ",EA72F30F427F5226FE0D95B738F96321"
+msgid "A lockpick?"
+msgstr "A lockpick?"
+
+#. Key:	AD1C4AE745BE4FF95F5EA0A228F9D196
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(3 - Value).Nodes.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(3 - Value).Nodes.Text
+msgctxt ",AD1C4AE745BE4FF95F5EA0A228F9D196"
+msgid "I've got something that might help us... escape...\r\n(He secretly slides a small metal tool through the bars.)"
+msgstr "I've got something that might help us... escape...\r\n(He secretly slides a small metal tool through the bars.)"
+
+#. Key:	BA9460D34C5507B6AEC5AAA721CDF2DE
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(4 - Value).Nodes.Outputs(0).Outputs.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(4 - Value).Nodes.Outputs(0).Outputs.Text
+msgctxt ",BA9460D34C5507B6AEC5AAA721CDF2DE"
+msgid "Fine. Talk."
+msgstr "Fine. Talk."
+
+#. Key:	A21A9A0D49480A82D9BC0F8850A1BF85
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(4 - Value).Nodes.Outputs(1).Outputs.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(4 - Value).Nodes.Outputs(1).Outputs.Text
+msgctxt ",A21A9A0D49480A82D9BC0F8850A1BF85"
+msgid "..."
+msgstr "..."
+
+#. Key:	9E3E6F25495BA3E106EBBA9EF1018C09
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(4 - Value).Nodes.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(4 - Value).Nodes.Text
+msgctxt ",9E3E6F25495BA3E106EBBA9EF1018C09"
+msgid "Suit yourself. If you plan to rot here quietly... "
+msgstr "Suit yourself. If you plan to rot here quietly... "
+
+#. Key:	0E0E22E94E813F3D6ADF2B8E93D2D775
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(5 - Value).Nodes.Outputs(0).Outputs.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(5 - Value).Nodes.Outputs(0).Outputs.Text
+msgctxt ",0E0E22E94E813F3D6ADF2B8E93D2D775"
+msgid "Why give it to me?"
+msgstr "Why give it to me?"
+
+#. Key:	5B7B53374C7DAA213A75758A6080EC18
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(5 - Value).Nodes.Outputs(1).Outputs.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(5 - Value).Nodes.Outputs(1).Outputs.Text
+msgctxt ",5B7B53374C7DAA213A75758A6080EC18"
+msgid "How do I use it?"
+msgstr "How do I use it?"
+
+#. Key:	868E1F8D4739CF9B671094997745BFFB
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(5 - Value).Nodes.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(5 - Value).Nodes.Text
+msgctxt ",868E1F8D4739CF9B671094997745BFFB"
+msgid "A portal gun! \r\nJoking. It's just... a lockpick. "
+msgstr "A portal gun! \r\nJoking. It's just... a lockpick. "
+
+#. Key:	49416802440F3E9985405995D530737F
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(6 - Value).Nodes.Outputs(0).Outputs.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(6 - Value).Nodes.Outputs(0).Outputs.Text
+msgctxt ",49416802440F3E9985405995D530737F"
+msgid "How do I use it?"
+msgstr "How do I use it?"
+
+#. Key:	79BF869E43D75420B72B0981109CBC88
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(6 - Value).Nodes.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(6 - Value).Nodes.Text
+msgctxt ",79BF869E43D75420B72B0981109CBC88"
+msgid "Smart one.\r\nWe can use it now that the guards are gone."
+msgstr "Smart one.\r\nWe can use it now that the guards are gone."
+
+#. Key:	228DE82F4A96A4634B8EA4B01D9909D6
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(7 - Value).Nodes.Outputs(0).Outputs.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(7 - Value).Nodes.Outputs(0).Outputs.Text
+msgctxt ",228DE82F4A96A4634B8EA4B01D9909D6"
+msgid "So what?"
+msgstr "So what?"
+
+#. Key:	5117A05D4E582DCE954578A0FF0A59DB
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(7 - Value).Nodes.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(7 - Value).Nodes.Text
+msgctxt ",5117A05D4E582DCE954578A0FF0A59DB"
+msgid "Some burglar was planning to use it but died before even trying. So now it's mine.\r\n"
+msgstr "Some burglar was planning to use it but died before even trying. So now it's mine.\r\n"
+
+#. Key:	6A474FDE4DD621A41DD568844A23DD64
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(8 - Value).Nodes.Outputs(0).Outputs.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(8 - Value).Nodes.Outputs(0).Outputs.Text
+msgctxt ",6A474FDE4DD621A41DD568844A23DD64"
+msgid "Alright. I'll try."
+msgstr "Alright. I'll try."
+
+#. Key:	0BB57E60422D1CDEBE7ECC89D2100E78
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(8 - Value).Nodes.Outputs(1).Outputs.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(8 - Value).Nodes.Outputs(1).Outputs.Text
+msgctxt ",0BB57E60422D1CDEBE7ECC89D2100E78"
+msgid "What if I fail?"
+msgstr "What if I fail?"
+
+#. Key:	098494474A7C077239CF4EA2C17B3662
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(8 - Value).Nodes.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(8 - Value).Nodes.Text
+msgctxt ",098494474A7C077239CF4EA2C17B3662"
+msgid "Just try the lock.\r\nCarefully though… too much force and it snaps."
+msgstr "Just try the lock.\r\nCarefully though… too much force and it snaps."
+
+#. Key:	F018F07A44CDE31F0B10F18A6B44B3E0
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(9 - Value).Nodes.Outputs(0).Outputs.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(9 - Value).Nodes.Outputs(0).Outputs.Text
+msgctxt ",F018F07A44CDE31F0B10F18A6B44B3E0"
+msgid "Start lockpicking."
+msgstr "Start lockpicking."
+
+#. Key:	28886A09478996577F556196C8646B7A
+#. SourceLocation:	/Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(9 - Value).Nodes.Text
+#: /Game/Game/Dialog/NPCDialogue.NPCDialogue.Nodes(9 - Value).Nodes.Text
+msgctxt ",28886A09478996577F556196C8646B7A"
+msgid "Nice. Good luck"
+msgstr "Nice. Good luck"
+
