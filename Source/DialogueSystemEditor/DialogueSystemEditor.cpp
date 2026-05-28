@@ -1,0 +1,279 @@
+#include "DialogueSystemEditor.h"
+#include "Modules/ModuleManager.h"
+
+#if WITH_EDITOR
+#include "AssetToolsModule.h"
+#include "IAssetTools.h"
+#include "EdGraphUtilities.h"
+#include "DialogueAsset.h"
+#include "DialogueGraph.h"
+#include "DialogueGraphNode.h"
+#include "DialogueStartGizmo.h"
+#include "DialogueEntryGizmo.h"
+#include "DialogueEndGizmo.h"
+#include "DialogueAction.h"
+#include "DialogueAssetTypeActions.h"
+#include "DialogueGraphNodeFactory.h"
+
+static bool TryParseOutIndex(const FName& PinName, int32& OutIndex)
+{
+	// Expected: Out_0, Out_1, ...
+	const FString S = PinName.ToString();
+	if (!S.StartsWith(TEXT("Out_")))
+	{
+		return false;
+	}
+
+	const FString Right = S.Mid(4);
+	if (!Right.IsNumeric())
+	{
+		return false;
+	}
+
+	OutIndex = FCString::Atoi(*Right);
+	return OutIndex >= 0;
+}
+
+static void CompileDialogueAsset(UDialogueAsset* Asset)
+{
+	if (!Asset) return;
+
+	Asset->Nodes.Empty();
+	Asset->StartNodeId = NAME_None;
+
+	if (!Asset->EditorGraph)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CompileFromGraph: EditorGraph is null"));
+		return;
+	}
+
+	auto DuplicateActionsToAsset = [Asset](const TArray<TObjectPtr<UDialogueAction>>& SourceActions)
+	{
+		TArray<TObjectPtr<UDialogueAction>> DuplicatedActions;
+		DuplicatedActions.Reserve(SourceActions.Num());
+		for (UDialogueAction* SourceAction : SourceActions)
+		{
+			if (!SourceAction)
+			{
+				continue;
+			}
+
+			if (UDialogueAction* Duplicated = DuplicateObject<UDialogueAction>(SourceAction, Asset))
+			{
+				DuplicatedActions.Add(Duplicated);
+			}
+		}
+		return DuplicatedActions;
+	};
+
+	// --- 1) Find Start Gizmo and get node connected to its output ---
+	UDialogueStartGizmo* StartGizmo = nullptr;
+	for (UEdGraphNode* Node : Asset->EditorGraph->Nodes)
+	{
+		if (UDialogueStartGizmo* Gizmo = Cast<UDialogueStartGizmo>(Node))
+		{
+			StartGizmo = Gizmo;
+			break;
+		}
+	}
+
+	if (StartGizmo)
+	{
+		for (UEdGraphPin* Pin : StartGizmo->Pins)
+		{
+			if (Pin && Pin->Direction == EGPD_Output && Pin->LinkedTo.Num() > 0 && Pin->LinkedTo[0])
+			{
+				if (UDialogueGraphNode* Target = Cast<UDialogueGraphNode>(Pin->LinkedTo[0]->GetOwningNode()))
+				{
+					Asset->StartNodeId = Target->NodeId;
+					break;
+				}
+			}
+		}
+	}
+
+	if (Asset->StartNodeId.IsNone())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CompileFromGraph: Start gizmo not connected to a dialogue node"));
+	}
+
+	// --- 1b) Build EntryPoints from all Entry gizmos ---
+	Asset->EntryPoints.Empty();
+	for (UEdGraphNode* Node : Asset->EditorGraph->Nodes)
+	{
+		if (UDialogueEntryGizmo* EntryGizmo = Cast<UDialogueEntryGizmo>(Node))
+		{
+			if (EntryGizmo->EntryPointId.IsNone()) continue;
+
+			for (UEdGraphPin* Pin : EntryGizmo->Pins)
+			{
+				if (Pin && Pin->Direction == EGPD_Output && Pin->LinkedTo.Num() > 0 && Pin->LinkedTo[0])
+				{
+					if (UDialogueGraphNode* Target = Cast<UDialogueGraphNode>(Pin->LinkedTo[0]->GetOwningNode()))
+					{
+						Asset->EntryPoints.Add(EntryGizmo->EntryPointId, Target->NodeId);
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	// --- 1c) Build EndToNextEntry: when you exit via End X, next time start at Entry Y ---
+	Asset->EndToNextEntry.Empty();
+	for (UEdGraphNode* Node : Asset->EditorGraph->Nodes)
+	{
+		if (UDialogueEndGizmo* EndGizmo = Cast<UDialogueEndGizmo>(Node))
+		{
+			// Use EndNodeId if set; otherwise fallback to NodeGuid so "next start" still works
+			FName EndKey = EndGizmo->EndNodeId.IsNone()
+				? FName(*EndGizmo->NodeGuid.ToString())
+				: EndGizmo->EndNodeId;
+
+			for (UEdGraphPin* Pin : EndGizmo->Pins)
+			{
+				if (Pin && Pin->Direction == EGPD_Output && Pin->PinName == FName(TEXT("NextStart")) &&
+					Pin->LinkedTo.Num() > 0 && Pin->LinkedTo[0])
+				{
+					if (UDialogueEntryGizmo* EntryGizmo = Cast<UDialogueEntryGizmo>(Pin->LinkedTo[0]->GetOwningNode()))
+					{
+						if (!EntryGizmo->EntryPointId.IsNone())
+						{
+							Asset->EndToNextEntry.Add(EndKey, EntryGizmo->EntryPointId);
+						}
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	// --- 2) Build runtime Nodes map from all Dialogue nodes ---
+	for (UEdGraphNode* Node : Asset->EditorGraph->Nodes)
+	{
+		UDialogueGraphNode* DNode = Cast<UDialogueGraphNode>(Node);
+		if (!DNode)
+		{
+			continue; // Skip Start Gizmo and other non-dialogue nodes
+		}
+
+		if (DNode->NodeId.IsNone())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("CompileFromGraph: Dialogue node with missing NodeId: %s"), *DNode->GetName());
+			continue;
+		}
+
+		FDialogueNode CompiledData = DNode->NodeData;
+		CompiledData.Actions = DuplicateActionsToAsset(DNode->NodeData.Actions);
+
+		// Clear all next links, enabled state, end events, and connected end id
+		for (auto& Out : CompiledData.Outputs)
+		{
+			Out.NextNodeId = NAME_None;
+			Out.bEnabled = false;
+			Out.EndActions.Empty();
+			Out.ConnectedEndNodeId = NAME_None;
+		}
+
+		// Read pin links and fill NextNodeId + bEnabled per output index
+		for (UEdGraphPin* Pin : DNode->Pins)
+		{
+			if (!Pin || Pin->Direction != EGPD_Output)
+			{
+				continue;
+			}
+
+			int32 OutIndex = INDEX_NONE;
+			if (!TryParseOutIndex(Pin->PinName, OutIndex))
+			{
+				continue;
+			}
+
+			if (!CompiledData.Outputs.IsValidIndex(OutIndex))
+			{
+				UE_LOG(LogTemp, Warning,
+					TEXT("CompileFromGraph: Node %s has pin %s but Outputs[%d] doesn't exist"),
+					*DNode->NodeId.ToString(),
+					*Pin->PinName.ToString(),
+					OutIndex);
+				continue;
+			}
+
+			FName NextId = NAME_None;
+			bool bWired = false;
+			TArray<TObjectPtr<UDialogueAction>> EndActs;
+			FName ConnectedEndId = NAME_None;
+
+			if (Pin->LinkedTo.Num() > 0 && Pin->LinkedTo[0])
+			{
+				UEdGraphNode* Target = Pin->LinkedTo[0]->GetOwningNode();
+				if (UDialogueGraphNode* DTarget = Cast<UDialogueGraphNode>(Target))
+				{
+					NextId = DTarget->NodeId;
+					bWired = true;
+				}
+				else if (UDialogueEndGizmo* EndGizmo = Cast<UDialogueEndGizmo>(Target))
+				{
+					bWired = true;
+					EndActs = DuplicateActionsToAsset(EndGizmo->Actions);
+					ConnectedEndId = EndGizmo->EndNodeId.IsNone()
+						? FName(*EndGizmo->NodeGuid.ToString())
+						: EndGizmo->EndNodeId;
+				}
+			}
+
+			CompiledData.Outputs[OutIndex].NextNodeId = NextId;
+			CompiledData.Outputs[OutIndex].bEnabled = bWired;
+			CompiledData.Outputs[OutIndex].EndActions = EndActs;
+			CompiledData.Outputs[OutIndex].ConnectedEndNodeId = ConnectedEndId;
+		}
+
+		Asset->Nodes.Add(DNode->NodeId, CompiledData);
+	}
+
+	// --- 4) Final warnings ---
+	if (Asset->StartNodeId.IsNone())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CompileFromGraph: StartNodeId is None (Start not connected or missing)"));
+	}
+
+	if (!Asset->StartNodeId.IsNone() && !Asset->Nodes.Contains(Asset->StartNodeId))
+	{
+		UE_LOG(LogTemp, Warning,
+			TEXT("CompileFromGraph: StartNodeId (%s) is not present in Nodes map"),
+			*Asset->StartNodeId.ToString());
+	}
+	Asset->Modify();
+}
+#endif
+
+void FDialogueSystemEditorModule::StartupModule()
+{
+#if WITH_EDITOR
+	// Register the compile delegate
+	UDialogueAsset::OnCompileDialogueAsset.AddStatic(&CompileDialogueAsset);
+
+	// Register AssetTypeActions
+	IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
+	DialogueAssetTypeActions = MakeShareable(new FDialogueAssetTypeActions());
+	AssetTools.RegisterAssetTypeActions(DialogueAssetTypeActions.ToSharedRef());
+
+	// Register Visual Node Factory
+	DialogueNodeFactory = MakeShared<FDialogueGraphNodeFactory>();
+	FEdGraphUtilities::RegisterVisualNodeFactory(DialogueNodeFactory);
+#endif
+}
+
+void FDialogueSystemEditorModule::ShutdownModule()
+{
+#if WITH_EDITOR
+	// Clean up Visual Node Factory
+	if (DialogueNodeFactory.IsValid())
+	{
+		FEdGraphUtilities::UnregisterVisualNodeFactory(DialogueNodeFactory);
+		DialogueNodeFactory.Reset();
+	}
+#endif
+}
+
+IMPLEMENT_MODULE(FDialogueSystemEditorModule, DialogueSystemEditor)
