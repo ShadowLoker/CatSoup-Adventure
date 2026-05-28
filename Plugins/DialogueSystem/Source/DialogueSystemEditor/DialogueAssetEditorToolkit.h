@@ -35,4 +35,10 @@ protected:
 	// Graph instance representing this asset's data
 	UPROPERTY()
 	TObjectPtr<UDialogueGraph> DialogueGraph;
+
+private:
+	void RegisterMenus();
+	void FillMenu(class FMenuBuilder& MenuBuilder);
+	void ImportMermaid();
+	void ExportMermaid();
 };

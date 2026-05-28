@@ -27,6 +27,7 @@ public class DialogueSystemEditor : ModuleRules
 			"ToolMenus",
 			"UnrealEd",
 			"WorkspaceMenuStructure",
+			"DesktopPlatform",
 		});
 
 		PrivateIncludePaths.Add(ModuleDirectory);

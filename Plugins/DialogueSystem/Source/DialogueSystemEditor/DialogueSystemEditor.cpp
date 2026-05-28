@@ -15,7 +15,7 @@
 #include "DialogueAssetTypeActions.h"
 #include "DialogueGraphNodeFactory.h"
 
-static bool TryParseOutIndex(const FName& PinName, int32& OutIndex)
+static bool TryParseOutIndexEditor(const FName& PinName, int32& OutIndex)
 {
 	// Expected: Out_0, Out_1, ...
 	const FString S = PinName.ToString();
@@ -184,7 +184,7 @@ static void CompileDialogueAsset(UDialogueAsset* Asset)
 			}
 
 			int32 OutIndex = INDEX_NONE;
-			if (!TryParseOutIndex(Pin->PinName, OutIndex))
+			if (!TryParseOutIndexEditor(Pin->PinName, OutIndex))
 			{
 				continue;
 			}

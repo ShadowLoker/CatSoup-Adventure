@@ -1,0 +1,68 @@
+# Dialogue Flowchart
+
+Generated from Dialogue Asset Editor.
+
+```mermaid
+flowchart TD
+    103B7C794679B319FCEECBA1BBDAAB47["Cellmate: Finally awake? Took you long enough."]
+    2D94185D424ECEBE1FCDE98CD4620835["Aldric: I won't ask you how come you've ended in Blackstone dungeon. But... Not the kind of place people ever leave."]
+    A8EF0A8A40E0AF93D2B8C6BB0CBD8626["Aldric: Relax. I’ve been watching the guards for quite some time..
+They just left. So we can talk."]
+    8E5A01BE4946D97DCB6BE68D9A021CFE["Aldric: I've got something that might help us... escape...
+(He secretly slides a small metal tool through the bars.)"]
+    50CAD1904FD2B6C3037942A05AE5C538["Cellmate: Suit yourself. If you plan to rot here quietly... "]
+    3DEABA8449E592D736F8FC9D19FE5D5C["Aldric: A portal gun! 
+Joking. It's just... a lockpick. "]
+    C352B635411AD111D28E779F9CA09F35["Aldric: Smart one.
+We can use it now that the guards are gone."]
+    C2D32A8A459F74D886B3FFA7CCCDDA53["Aldric: Some burglar was planning to use it but died before even trying. So now it's mine.
+"]
+    12DFA5C3451AB8748D538D8FEE7E0115["Aldric: Just try the lock.
+Carefully though… too much force and it snaps."]
+    90C0C84C4968C644D537AC92875BCCD6["Aldric: Nice. Good luck"]
+    A287CF2C43A545BABC4A9E9E457A57EB["Aldric: Then we stay here. Forever.
+So… try not to fail."]
+    Start([Start])
+    End_Return[[Return]]
+    End_End[[End]]
+    Lockpick([Lockpick])
+    51347DC44511C36085E212BD0A5C76C2["Aldric: Name's Aldric.
+God... It's been ages since someone last came to this hole.
+"]
+    1C0BA88642D3A62FB91113BD2105BEDE["Aldric: So you wanna talk now? Good...  you've come to your senses."]
+    Talk([Talk])
+    FD45E28646031A1DCD647F94F5D342B0["Aldric: I'm not a burglar. I'm here for killing people. I don't even know how this thing works!
+"]
+    End_Leave[[Leave]]
+    351BAA3246D9DD95018E90A72D047944["Aldric: Wanna try now?"]
+
+    103B7C794679B319FCEECBA1BBDAAB47 -->|"Where am I?"| 2D94185D424ECEBE1FCDE98CD4620835
+    103B7C794679B319FCEECBA1BBDAAB47 -->|"Who are you?"| 51347DC44511C36085E212BD0A5C76C2
+    103B7C794679B319FCEECBA1BBDAAB47 -->|"Leave me alone."| 50CAD1904FD2B6C3037942A05AE5C538
+    2D94185D424ECEBE1FCDE98CD4620835 -->|"We're doomed then..."| A8EF0A8A40E0AF93D2B8C6BB0CBD8626
+    2D94185D424ECEBE1FCDE98CD4620835 -->|"There must be a way out."| 8E5A01BE4946D97DCB6BE68D9A021CFE
+    A8EF0A8A40E0AF93D2B8C6BB0CBD8626 -->|"And?"| 8E5A01BE4946D97DCB6BE68D9A021CFE
+    8E5A01BE4946D97DCB6BE68D9A021CFE -->|"What is this?"| 3DEABA8449E592D736F8FC9D19FE5D5C
+    8E5A01BE4946D97DCB6BE68D9A021CFE -->|"A lockpick?"| C352B635411AD111D28E779F9CA09F35
+    50CAD1904FD2B6C3037942A05AE5C538 -->|"Fine. Talk."| 2D94185D424ECEBE1FCDE98CD4620835
+    50CAD1904FD2B6C3037942A05AE5C538 -->|"..."| End_End
+    3DEABA8449E592D736F8FC9D19FE5D5C -->|"Why give it to me?"| C2D32A8A459F74D886B3FFA7CCCDDA53
+    3DEABA8449E592D736F8FC9D19FE5D5C -->|"How do I use it?"| 12DFA5C3451AB8748D538D8FEE7E0115
+    C352B635411AD111D28E779F9CA09F35 -->|"How do I use it?"| 12DFA5C3451AB8748D538D8FEE7E0115
+    C2D32A8A459F74D886B3FFA7CCCDDA53 -->|"So what?"| FD45E28646031A1DCD647F94F5D342B0
+    12DFA5C3451AB8748D538D8FEE7E0115 -->|"Alright. I'll try."| 90C0C84C4968C644D537AC92875BCCD6
+    12DFA5C3451AB8748D538D8FEE7E0115 -->|"What if I fail?"| A287CF2C43A545BABC4A9E9E457A57EB
+    90C0C84C4968C644D537AC92875BCCD6 -->|"Start lockpicking."| End_Leave
+    A287CF2C43A545BABC4A9E9E457A57EB -->|"Okay, i'll do it."| 90C0C84C4968C644D537AC92875BCCD6
+    A287CF2C43A545BABC4A9E9E457A57EB -->|"Wait a bit."| End_Return
+    Start --> 103B7C794679B319FCEECBA1BBDAAB47
+    End_Return --> Lockpick
+    End_End --> Talk
+    Lockpick --> 351BAA3246D9DD95018E90A72D047944
+    51347DC44511C36085E212BD0A5C76C2 -->|"Hole?"| 2D94185D424ECEBE1FCDE98CD4620835
+    1C0BA88642D3A62FB91113BD2105BEDE -->|"I guess so."| 2D94185D424ECEBE1FCDE98CD4620835
+    Talk --> 1C0BA88642D3A62FB91113BD2105BEDE
+    FD45E28646031A1DCD647F94F5D342B0 -->|"Fair point."| 12DFA5C3451AB8748D538D8FEE7E0115
+    351BAA3246D9DD95018E90A72D047944 -->|"I'll do it"| 90C0C84C4968C644D537AC92875BCCD6
+    351BAA3246D9DD95018E90A72D047944 -->|"No..."| End_Return
+```

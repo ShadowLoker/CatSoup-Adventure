@@ -95,9 +95,11 @@ void SDialogueGraphNode::UpdateGraphNode()
 				.AutoHeight()
 				[
 					SNew(SBox)
+					.WidthOverride(300.f)
 					.MinDesiredHeight(80.f)
 					[
 						SNew(SMultiLineEditableTextBox)
+						.AutoWrapText(true)
 						.Text(TAttribute<FText>::CreateLambda([WeakNode = TWeakObjectPtr<UDialogueGraphNode>(DNode)]()
 						{
 							UDialogueGraphNode* Node = WeakNode.Get();
